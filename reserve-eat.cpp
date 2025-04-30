@@ -42,64 +42,56 @@ int main()
             {
                 while (condition)
                 {
-                    try
+                    if (!isValidInteger(input))
+                        throw invalid_argument("Invalid input. Please enter a valid menu option (1-4).");
+
+                    choice = stoi(input);
+                    if (choice < 1 || choice > 3)
+                        throw out_of_range("Invalid menu option. Please choose from 1 to 3.");
+
+                    string name, phoneNo, guestCount, date, time;
+
+                    cout << "\nCUSTOMER MENU\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Back to main menu\n\nEnter choice: ";
+                    getline(cin, input);
+                    if (!isValidInteger(input))
+                        throw invalid_argument("Invalid input. Please enter a valid menu option (1-5).");
+                    if (choice < 1 || choice > 3)
+                        throw out_of_range("Invalid menu option. Please choose from 1 to 5.");
+
+                    if (choice == 1)
                     {
-                        if (!isValidInteger(input))
-                            throw invalid_argument("Invalid input. Please enter a valid menu option (1-4).");
-
-                        choice = stoi(input);
-                        if (choice < 1 || choice > 3)
-                            throw out_of_range("Invalid menu option. Please choose from 1 to 3.");
-
-                        string name, phoneNo, guestCount, date, time;
-
-                        cout << "\nCUSTOMER MENU\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Back to main menu\n\nEnter choice: ";
-                        getline(cin, input);
-                        if (!isValidInteger(input))
-                            throw invalid_argument("Invalid input. Please enter a valid menu option (1-5).");
-                        if (choice < 1 || choice > 3)
-                            throw out_of_range("Invalid menu option. Please choose from 1 to 5.");
-
-                        if (choice == 1)
-                        {
-                            cout << "Enter name: ";
-                            getline(cin, name);
-                            cout << "Enter phone number: ";
-                            getline(cin, phoneNo);
-                            cout << "Enter number of guests: ";
-                            getline(cin, guestCount);
-                            cout << "Enter date (YYYY-MM-DD): ";
-                            getline(cin, date);
-                            cout << "Enter time (HH:MM): ";
-                            getline(cin, time);
-                            cout << "Reservation made successfully!\n";
-                            break;
-                        }
-
-                        else if (choice == 2)
-                        {
-                            break;
-                        }
-
-                        else if (choice == 3)
-                        {
-                            break;
-                        }
-
-                        else if (choice == 4)
-                        {
-                            break;
-                        }
-
-                        else if (choice == 5)
-                        {
-                            break;
-                        }
+                        cout << "Enter name: ";
+                        getline(cin, name);
+                        cout << "Enter phone number: ";
+                        getline(cin, phoneNo);
+                        cout << "Enter number of guests: ";
+                        getline(cin, guestCount);
+                        cout << "Enter date (YYYY-MM-DD): ";
+                        getline(cin, date);
+                        cout << "Enter time (HH:MM): ";
+                        getline(cin, time);
+                        cout << "Reservation made successfully!\n";
+                        break;
                     }
 
-                    catch (const exception &e)
+                    else if (choice == 2)
                     {
-                        cout << e.what() << "\n";
+                        break;
+                    }
+
+                    else if (choice == 3)
+                    {
+                        break;
+                    }
+
+                    else if (choice == 4)
+                    {
+                        break;
+                    }
+
+                    else if (choice == 5)
+                    {
+                        break;
                     }
 
                     // Admin menu
@@ -122,9 +114,14 @@ int main()
                         break;
                     }
                 }
-                catch (const exception &e)
-                {
-                    cout << e.what() << "\n";
-                }
             }
         }
+
+        catch (const exception &e)
+        {
+            cout << e.what() << "\n";
+        }
+    }
+
+    return 0;
+}
