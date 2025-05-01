@@ -1,13 +1,19 @@
 #include <iostream>
-#include <vector>
+#include <vector> // Used for dynamic array
 #include <string>
 #include <stdexcept>
-#include <iomanip>
+#include <iomanip> // Used for formatting output
 #include <algorithm>
 using namespace std;
 
 const string STATUS[] = {"Pending", "Approved", "Settled"};
-const int MAX_RESERVATIONS = 100; 
+const int MAX_RESERVATIONS = 100;
+
+string toUpperCase(string str)
+{
+    transform(str.begin(), str.end(), str.begin(), ::toupper);
+    return str;
+}
 
 class Reservation
 {
@@ -17,9 +23,10 @@ private:
 
 public:
     Reservation() {}
-    Reservation(string id, string name, string phoneNo, int guestCount, string date, string time, string status) : name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
+    Reservation(string id, string name, string phoneNo, int guestCount, string date, string time, string status) : id(id), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
 
     string getID() const { return id; }
+    string getStatus() const { return status; }
 
     void editReservation(int gCount, string dt, string tm)
     {
@@ -30,26 +37,160 @@ public:
 
     void displayReservations() const
     {
-        cout << left << setw(15) << id << setw(15) << name << setw(15) << phoneNo << setw(10) << guestCount << setw(10) << date << setw(10) << time << setw(10) << "status" << endl;
+        cout << left << setw(20) << id << setw(30) << name << setw(20) << phoneNo
+             << setw(10) << guestCount << setw(15) << date << setw(15) << time
+             << setw(15) << status << endl;
+        cout << "========================================================================================================================\n";
     }
 };
 
-class ReservationSystem {
-    private:
-        vector<Reservation> reservations;
-        int reservationCounter = 0;
-    
-    public:
-        string generateID();
-        void addReservation(...);
-        void editReservation(const string &id);
-        void cancelReservation(const string &id);
-        void displayAll();
-        void displayByStatus(const string &status);
-        void approveReservation(const string &id);
-        void settlePayment(const string &id);
-        bool exists(const string &id);
-    };
+class ReservationSystem
+{
+private:
+    vector<Reservation> reservations;
+    int reservationCounter = 0;
+
+public:
+    //  Reservation System methods
+    string generateID();
+    void addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
+    void editReservation(const string &id);
+    void cancelReservation(const string &id);
+    void displayAll();
+    void displayByStatus(const string &status);
+    void approveReservation(const string &id);
+    void settlePayment(const string &id);
+    bool exists(const string &id);
+    bool isEmpty() const;
+};
+
+// Implementation of generateID method
+string ReservationSystem::generateID()
+{
+    return to_string(++reservationCounter); // Increments and returns new ID
+}
+
+// Implementation of addReservation method
+void ReservationSystem::addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
+{
+    string id = generateID();
+    reservations.emplace_back(id, name, phoneNo, guestCount, date, time, STATUS[0]); // STATUS[0] = "Pending"
+    cout << "Reservation made successfully! ID: " << id << endl;
+}
+
+void ReservationSystem::editReservation(const string &id)
+{
+    for (auto &res : reservations)
+    {
+        if (res.getID() == id)
+        {
+            // Only allow editing if status is "Pending"
+            if (res.getStatus() != "Pending")
+            {
+                cout << "Only reservations with 'Pending' status can be edited.\n";
+                return;
+            }
+
+            string newDate, newTime, newGC;
+            int newGuestCount;
+            bool validGC = false;
+
+            do
+            {
+                cout << "Enter new number of guests: ";
+                getline(cin, newGC);
+                bool isValid = true;
+                for (char c : newGC)
+                {
+                    if (!isdigit(c))
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+                if (!isValid || newGC.empty())
+                {
+                    cout << "Invalid input. Please enter a valid number.\n";
+                    continue;
+                }
+                newGuestCount = stoi(newGC);
+                if (newGuestCount < 1 || newGuestCount > 100)
+                {
+                    cout << "Guest Count must be between 1 and 100.\n";
+                    continue;
+                }
+                validGC = true;
+            } while (!validGC);
+
+            do
+            {
+                cout << "Enter new date (MM-DD-YYYY): ";
+                getline(cin, newDate);
+                if (newDate.empty())
+                {
+                    cout << "Date cannot be empty.\n";
+                }
+            } while (newDate.empty());
+
+            do
+            {
+                cout << "Enter new time (HH:MM AM/PM): ";
+                getline(cin, newTime);
+                if (newTime.empty())
+                {
+                    cout << "Time cannot be empty.\n";
+                }
+            } while (newTime.empty());
+
+            res.editReservation(newGuestCount, newDate, newTime);
+            cout << "Reservation updated successfully!\n";
+            return;
+        }
+    }
+
+    cout << "Reservation ID not found.\n";
+}
+
+// Implementation of displayAll method
+void ReservationSystem::displayAll()
+{
+    cout << "\n=================================================== ALL RESERVATIONS ===================================================\n";
+    cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
+         << setw(15) << "Status" << endl;
+    cout << "------------------------------------------------------------------------------------------------------------------------\n";
+    for (const auto &res : reservations)
+    {
+        res.displayReservations();
+    }
+}
+
+void ReservationSystem::cancelReservation(const string &id)
+{
+    for (auto it = reservations.begin(); it != reservations.end(); ++it)
+    {
+        if (it->getID() == id)
+        {
+            reservations.erase(it);
+            return;
+        }
+    }
+}
+
+bool ReservationSystem::exists(const string &id)
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getID() == id)
+            return true;
+    }
+    return false;
+}
+
+bool ReservationSystem::isEmpty() const
+{
+    return reservations.empty();
+}
 
 class PaymentMethod
 {
@@ -120,7 +261,6 @@ public:
 
 Payment *Payment::instance = nullptr;
 
-
 int getValidPaymentMethodInput()
 {
     string input;
@@ -141,6 +281,7 @@ int getValidPaymentMethodInput()
     }
 }
 
+// Function to check if the input is a an integer
 bool isValidInteger(const string &input)
 {
     if (input.empty())
@@ -153,11 +294,9 @@ bool isValidInteger(const string &input)
     return true;
 }
 
-string toUpperCase(string str) {
-    transform(str.begin(), str.end(), str.begin(), ::toupper);
-    return str;
-}
+ReservationSystem rs;
 
+// Customer Menu
 void customerMenu()
 {
     string input;
@@ -166,65 +305,244 @@ void customerMenu()
 
     while (condition)
     {
-        cout << "\nCUSTOMER MENU\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Back to main menu\n\nEnter choice: ";
+        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Back to main menu\n";
+        cout << "=====================================\n";
+        cout << "Enter choice: ";
         getline(cin, input);
+        cout << "\n";
 
         try
         {
             if (!isValidInteger(input))
-                throw invalid_argument("Invalid input. Please enter a valid menu option (1-5).");
+            {
+                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-5).\n");
+            }
 
             choice = stoi(input);
             if (choice < 1 || choice > 5)
-                throw out_of_range("Invalid menu option. Please choose from 1 to 5.");
+            {
+                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3, 4, or 5 only.\n");
+            }
+            else if (choice == 5)
+            {
+                cout << "Returning to main menu...\n";
+                condition = false;
+                return;
+            }
         }
         catch (const exception &e)
         {
             cout << e.what() << "\n";
         }
 
-        // make reservation
-        if (choice == 1)
+        switch (choice)
         {
-            string name, phoneNo, guestCount, date, time;
-            cout << "Enter name: ";
-            getline(cin, name);
-            cout << "Enter phone number: ";
-            getline(cin, phoneNo);
-            cout << "Enter number of guests: ";
-            getline(cin, guestCount);
-            cout << "Enter date (YYYY-MM-DD): ";
-            getline(cin, date);
-            cout << "Enter time (HH:MM): ";
-            getline(cin, time);
-            cout << "Reservation made successfully!\n";
+        case 1:
+        {
+            string name, phoneNo, date, time, gc;
+            bool isValidPhoneNo = false, isValidGC = false;
+            int guestCount;
+
+            cout << "\n====================== MAKE RESERVATION ======================\n";
+            do
+            {
+                cout << "Name: ";
+                getline(cin, name);
+                if (name.empty())
+                {
+                    cout << "Name cannot be empty! Please enter a valid name.\n";
+                }
+            } while (name.empty());
+
+            do
+            {
+                cout << "Phone Number (09XXXXXXXXX): ";
+                getline(cin, phoneNo);
+                if (phoneNo.empty())
+                {
+                    cout << "Contact Number cannot be empty! Please enter a valid contact number.\n";
+                }
+                else if (phoneNo.length() != 11 || phoneNo[0] != '0' || phoneNo[1] != '9')
+                {
+                    cout << "Invalid Contact Number! Please enter a valid contact number.\n";
+                }
+                else
+                {
+                    isValidPhoneNo = true;
+                }
+            } while (!isValidPhoneNo);
+
+            do
+            {
+                bool validNumber = true;
+                cout << "Number of Guests: ";
+                getline(cin, gc);
+                if (gc.empty())
+                {
+                    cout << "Guest Count cannot be empty! Please enter a valid guest count.\n";
+                    continue;
+                }
+
+                for (char c : gc)
+                {
+                    if (!isdigit(c))
+                    {
+                        validNumber = false;
+                        break;
+                    }
+                }
+
+                if (!validNumber)
+                {
+                    cout << "Invalid Guest Count! Please enter a valid number.\n";
+                    continue;
+                }
+
+                guestCount = stoi(gc);
+                if (guestCount < 1 || guestCount > 100)
+                {
+                    cout << "Guest Count must be between 1 and 10.\n";
+                    continue;
+                }
+                isValidGC = true;
+            } while (!isValidGC);
+
+            do
+            {
+                cout << "Date (MM-DD-YYYY): ";
+                getline(cin, date);
+                if (date.empty())
+                {
+                    cout << "Date cannot be empty! Please enter a valid date.\n";
+                }
+            } while (date.empty());
+
+            do
+            {
+                cout << "Time (HH:MM AM/PM): ";
+                getline(cin, time);
+                if (time.empty())
+                {
+                    cout << "Time cannot be empty! Please enter a valid time.\n";
+                }
+            } while (time.empty());
+
+            rs.addReservation(name, phoneNo, guestCount, date, time);
+            cout << "\n==============================================================\n";
+
             break;
         }
-
-        // edit reservation
-        else if (choice == 2)
+        case 2:
         {
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to edit.\n";
+                break;
+            }
+
+            rs.displayAll();
+            string id, confirm;
+            cout << "Enter Reservation ID to edit: ";
+            getline(cin, id);
+            if (id.empty())
+            {
+                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                break;
+            }
+
+            if (!rs.exists(id))
+            {
+                cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            do
+            {
+                cout << "Are you sure you want to edit reservation ID " << id << "? (Y/N): ";
+                getline(cin, confirm);
+                confirm = toUpperCase(confirm);
+                if (confirm == "Y")
+                {
+                    rs.editReservation(id);
+                }
+                else if (confirm == "N")
+                {
+                    cout << "Edit Cancelled.\n";
+                }
+                else if (confirm.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+                else
+                {
+                    cout << "Invalid Input! Please enter Y or N only.\n";
+                }
+
+            } while (confirm != "Y" && confirm != "N");
             break;
         }
-
-        // view reservation
-        else if (choice == 3)
+        case 3:
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status"<< endl;
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to display.\n";
+                break;
+            }
+            rs.displayAll();
             break;
         }
-
-        // cancel reservation
-        else if (choice == 4)
+        case 4:
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status"<< endl;
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to cancel.\n";
+                break;
+            }
+
+            rs.displayAll();
+
+            string id, confirm;
+            cout << "Enter Reservation ID to cancel: ";
+            getline(cin, id);
+
+            if (id.empty())
+            {
+                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                break;
+            }
+
+            if (!rs.exists(id))
+            {
+                cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            do
+            {
+                cout << "Are you sure you want to cancel reservation ID " << id << "? (Y/N): ";
+                getline(cin, confirm);
+                confirm = toUpperCase(confirm);
+                if (confirm == "Y")
+                {
+                    rs.cancelReservation(id);
+                    cout << "Reservation ID " << id << " has been cancelled successfully.\n";
+                }
+                else if (confirm == "N")
+                {
+                    cout << "Cancellation aborted.\n";
+                }
+                else if (confirm.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+                else
+                {
+                    cout << "Invalid Input! Please enter Y or N only.\n";
+                }
+
+            } while (confirm != "Y" && confirm != "N");
             break;
         }
-
-        // back to main menu
-        else if (choice == 5)
-        {
-            return;
         }
     }
 }
@@ -241,11 +559,11 @@ void adminMenu()
         try
         {
             if (!isValidInteger(input))
-                throw invalid_argument("Invalid input. Please enter a valid menu option (1-3).");
+                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).");
 
             choice = stoi(input);
             if (choice < 1 || choice > 3)
-                throw out_of_range("Invalid menu option. Please choose from 1 to 3.");
+                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3 only.");
         }
         catch (const exception &e)
         {
@@ -255,14 +573,14 @@ void adminMenu()
         // view reservations
         if (choice == 1)
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status"<< endl;
+            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status" << endl;
             break;
         }
 
         // view pending & approve reservations
         else if (choice == 2)
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status"<< endl;
+            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status" << endl;
             break;
         }
 
@@ -282,38 +600,44 @@ int main()
     while (condition)
     {
         string input;
-        cout << "Welcome to Reserve Eat! : Restaurant Reservation System\n"
-             << endl;
-
-        // insert intro here
-
-        cout << "MAIN MENU\n[1] Customer\n[2] Admin\n[3] Exit\n\nEnter choice: ";
+        cout << "Welcome to Reserve Eat! : LOG-IN PAGE\n";
+        cout << "=========== MAIN MENU ===========\n";
+        cout << "[1] Customer\n[2] Admin\n[3] Exit\n";
+        cout << "=================================\n";
+        cout << "Enter your choice: ";
         getline(cin, input);
 
         try
         {
             if (!isValidInteger(input))
-                throw invalid_argument("Invalid input. Please enter a valid menu option (1-4).");
+            {
+                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).\n");
+            }
 
             choice = stoi(input);
             if (choice < 1 || choice > 3)
-                throw out_of_range("Invalid menu option. Please choose from 1 to 3.");
-
-            // Customer menu
-            if (choice == 1)
             {
-                customerMenu();
+                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, or 3.\n");
             }
-
-            else if (choice == 2)
-            {
-                adminMenu();
-            }
-
             else if (choice == 3)
             {
-                cout << "Exit...";
+                cout << "Thank you for visiting Reserve Eat! Exiting program..." << endl;
                 condition = false;
+            }
+
+            switch (choice)
+            {
+            case 1:
+            {
+                customerMenu();
+                break;
+            }
+
+            case 2:
+            {
+                adminMenu();
+                break;
+            }
             }
         }
         catch (const exception &e)
