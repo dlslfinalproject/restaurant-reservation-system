@@ -27,6 +27,10 @@ public:
 
     string getID() const { return id; }
     string getStatus() const { return status; }
+    int getGuestCount() const { return guestCount; }
+    string getDate() const { return date; }
+    string getTime() const { return time; }
+    void setStatus(const string &newStatus) { status = newStatus; }
 
     void editReservation(int gCount, string dt, string tm)
     {
@@ -151,6 +155,23 @@ void ReservationSystem::editReservation(const string &id)
     cout << "Reservation ID not found.\n";
 }
 
+// Implementation of displayByStatus method
+void ReservationSystem::displayByStatus(const string &status)
+{
+    cout << "=================================================== RESERVATIONS - STATUS: " << status << " ===================================================\n";
+    cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
+         << setw(15) << "Status" << endl;
+    cout << "------------------------------------------------------------------------------------------------------------------------\n";
+    for (const auto &res : reservations)
+    {
+        if (res.getStatus() == status)
+        {
+            res.displayReservations();
+        }
+    }
+}
+
 // Implementation of displayAll method
 void ReservationSystem::displayAll()
 {
@@ -163,6 +184,35 @@ void ReservationSystem::displayAll()
     {
         res.displayReservations();
     }
+}
+
+// approveReservation method - pending to approved
+void ReservationSystem::approveReservation(const string &id)
+{
+    for (auto &res : reservations)
+    {
+        if (res.getID() == id && res.getStatus() == STATUS[0]) // STATUS[0] = "Pending"
+        {
+            res.editReservation(res.getGuestCount(), res.getDate(), res.getTime()); // optional update
+            res.setStatus(STATUS[1]);                                               // STATUS[1] = "Approved"
+            return;
+        }
+    }
+    cout << "Reservation either not found or not pending.\n";
+}
+
+// settlePayment method - approved to settled
+void ReservationSystem::settlePayment(const string &id)
+{
+    for (auto &res : reservations)
+    {
+        if (res.getID() == id && res.getStatus() == STATUS[1]) // STATUS[1] = "Approved"
+        {
+            res.setStatus(STATUS[2]); // STATUS[2] = "Settled"
+            return;
+        }
+    }
+    cout << "Reservation must be approved before settling payment.\n";
 }
 
 void ReservationSystem::cancelReservation(const string &id)
@@ -266,18 +316,18 @@ int getValidPaymentMethodInput()
     string input;
     while (true)
     {
-        cout << "Select Payment Method:\n1. Cash\n2. GCash\n3. Card\nEnter your choice (Cash, GCash, Card): ";
+        cout << "Select Payment Method:\n1. Maya\n2. GCash\n3. Card\nEnter your choice (Maya, GCash, Card): ";
         getline(cin, input);
         input = toUpperCase(input);
 
-        if (input == "CASH")
+        if (input == "MAYA")
             return 1;
         else if (input == "GCASH")
             return 2;
         else if (input == "CARD")
             return 3;
         else
-            cout << "Invalid payment method. Please enter one of the following: Cash, GCash, or Card.\n\n";
+            cout << "Invalid payment method. Please enter one of the following: Maya, GCash, or Card.\n\n";
     }
 }
 
@@ -305,7 +355,7 @@ void customerMenu()
 
     while (condition)
     {
-        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Back to main menu\n";
+        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
         cout << "=====================================\n";
         cout << "Enter choice: ";
         getline(cin, input);
@@ -315,15 +365,15 @@ void customerMenu()
         {
             if (!isValidInteger(input))
             {
-                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-5).\n");
+                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-6).\n");
             }
 
             choice = stoi(input);
-            if (choice < 1 || choice > 5)
+            if (choice < 1 || choice > 6)
             {
-                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3, 4, or 5 only.\n");
+                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3, 4, 5 or 6 only.\n");
             }
-            else if (choice == 5)
+            else if (choice == 6)
             {
                 cout << "Returning to main menu...\n";
                 condition = false;
@@ -337,6 +387,8 @@ void customerMenu()
 
         switch (choice)
         {
+
+        // make reservation
         case 1:
         {
             string name, phoneNo, date, time, gc;
@@ -432,6 +484,8 @@ void customerMenu()
 
             break;
         }
+
+        // edit reservation
         case 2:
         {
             if (rs.isEmpty())
@@ -481,6 +535,8 @@ void customerMenu()
             } while (confirm != "Y" && confirm != "N");
             break;
         }
+
+        // view reservation
         case 3:
         {
             if (rs.isEmpty())
@@ -491,6 +547,8 @@ void customerMenu()
             rs.displayAll();
             break;
         }
+
+        // cancel reservation
         case 4:
         {
             if (rs.isEmpty())
@@ -543,6 +601,94 @@ void customerMenu()
             } while (confirm != "Y" && confirm != "N");
             break;
         }
+
+        // settle payment
+        case 5:
+        {
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to settle payment.\n";
+                break;
+            }
+
+            rs.displayByStatus(STATUS[1]); // STATUS[1] = "Approved"
+            string id, confirm;
+            cout << "Enter Reservation ID to settle payment: ";
+            getline(cin, id);
+
+            if (id.empty())
+            {
+                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                break;
+            }
+
+            if (!rs.exists(id))
+            {
+                cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            do
+            {
+                cout << "Are you sure you want to settle payment for reservation ID " << id << "? (Y/N): ";
+                getline(cin, confirm);
+                confirm = toUpperCase(confirm);
+                if (confirm == "Y")
+                {
+                    rs.settlePayment(id);
+                    int method = getValidPaymentMethodInput();
+                    Payment *payment = Payment::getInstance();
+
+                    switch (method)
+                    {
+                    case 1:
+                        payment->setStrategy(new Maya());
+                        break;
+                    case 2:
+                        payment->setStrategy(new GCash());
+                        break;
+                    case 3:
+                        payment->setStrategy(new Card());
+                        break;
+                    }
+                    cout << "Payment method: ";
+                    payment->executePayment();
+                    cout << "\n";
+
+                    string paymentType;
+                    switch (method)
+                    {
+                    case 1:
+                        paymentType = "Maya";
+                        break;
+                    case 2:
+                        paymentType = "GCash";
+                        break;
+                    case 3:
+                        paymentType = "Credit / Debit Card";
+                        break;
+
+                        cout << "Payment for reservation ID " << id << " has been settled successfully!\n";
+                    }
+                }
+
+                else if (confirm == "N")
+                {
+                    cout << "Payment settlement aborted.\n";
+                }
+
+                else if (confirm.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+                else
+                {
+                    cout << "Invalid Input! Please enter Y or N only.\n";
+                }
+
+            } while (confirm != "Y" && confirm != "N");
+            break;
+        }
         }
     }
 }
@@ -552,42 +698,119 @@ void adminMenu()
     string input;
     int choice;
     bool condition = true;
+
     while (condition)
     {
-        cout << "\nADMIN MENU\n[1] View reservations\n[2] Approve reservation\n[3] Back to main menu\n\nEnter choice: ";
+        cout << "\n=========== ADMIN MENU ===========\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
+        cout << "=====================================\n";
+        cout << "Enter choice: ";
         getline(cin, input);
+        cout << "\n";
+
         try
         {
             if (!isValidInteger(input))
-                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).");
+            {
+                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).\n");
+            }
 
             choice = stoi(input);
             if (choice < 1 || choice > 3)
-                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3 only.");
+            {
+                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, or 3 only.\n");
+            }
+            else if (choice == 3)
+            {
+                cout << "Returning to main menu...\n";
+                condition = false;
+                return;
+            }
         }
         catch (const exception &e)
         {
             cout << e.what() << "\n";
         }
 
-        // view reservations
-        if (choice == 1)
+        switch (choice)
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status" << endl;
+
+            // view reservations
+        case 1:
+        {
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to display.\n";
+                break;
+            }
+            rs.displayAll();
             break;
         }
 
         // view pending & approve reservations
-        else if (choice == 2)
+        case 2:
         {
-            cout << left << setw(15) << "ID" << setw(15) << "Name" << setw(15) << "Phone No" << setw(10) << "Guests" << setw(10) << "Date" << setw(10) << "Time" << setw(10) << "Status" << endl;
+            if (rs.isEmpty())
+            {
+                cout << "No reservations to display.\n";
+                break;
+            }
+
+            rs.displayByStatus(STATUS[0]);
+            string id, confirm;
+            cout << "Enter Reservation ID to approve: ";
+            getline(cin, id);
+
+            if (id.empty())
+            {
+                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                break;
+            }
+
+            if (!rs.exists(id))
+            {
+                cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            do
+            {
+                cout << "Are you sure you want to approve reservation ID " << id << "? (Y/N): ";
+                getline(cin, confirm);
+                confirm = toUpperCase(confirm);
+
+                if (confirm == "Y")
+                {
+                    rs.approveReservation(id);
+                    cout << "Reservation ID " << id << " has been approved successfully!\n";
+                }
+
+                else if (confirm == "N")
+                {
+                    break;
+                }
+
+                else if (confirm.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+
+                else
+                {
+                    cout << "Invalid Input! Please enter Y or N only.\n";
+                }
+
+            } while (confirm != "Y" && confirm != "N");
+
             break;
         }
 
         // back to main menu
-        else if (choice == 3)
+        case 3:
         {
+            cout << "Returning to main menu...\n";
+            condition = false;
             return;
+        }
         }
     }
 }
@@ -623,6 +846,7 @@ int main()
             {
                 cout << "Thank you for visiting Reserve Eat! Exiting program..." << endl;
                 condition = false;
+                break;
             }
 
             switch (choice)
