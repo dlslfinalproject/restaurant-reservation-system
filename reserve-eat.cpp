@@ -15,6 +15,45 @@ string toUpperCase(string str)
     return str;
 }
 
+// Get a valid integer input
+int getValidInt(const string &prompt, int min, int max)
+{
+    string input;
+    int value;
+    bool valid = false;
+    while (!valid)
+    {
+        cout << prompt;
+        getline(cin, input);
+
+        try
+        {
+            if (input.empty())
+            {
+                throw invalid_argument("Input cannot be Empty! Please enter a valid whole number.\n");
+            }
+            for (char c : input)
+            {
+                if (!isdigit(c))
+                {
+                    throw invalid_argument("Invalid Input! Please enter a valid whole number.\n");
+                }
+            }
+            value = stoi(input);
+            if (value < min || value > max)
+            {
+                throw out_of_range("Input out of range! Please try again.\n");
+            }
+            valid = true;
+        }
+        catch (const exception &e)
+        {
+            cout << "Error: " << e.what() << endl;
+        }
+    }
+    return value;
+}
+
 class Reservation
 {
 private:
@@ -158,7 +197,7 @@ void ReservationSystem::editReservation(const string &id)
 // Implementation of displayByStatus method
 void ReservationSystem::displayByStatus(const string &status)
 {
-    cout << "=================================================== RESERVATIONS - STATUS: " << status << " ===================================================\n";
+    cout << "============================================ RESERVATIONS - STATUS: " << status << " ============================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
          << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
          << setw(15) << "Status" << endl;
@@ -331,67 +370,27 @@ int getValidPaymentMethodInput()
     }
 }
 
-// Function to check if the input is a an integer
-bool isValidInteger(const string &input)
-{
-    if (input.empty())
-        return false;
-    for (char c : input)
-    {
-        if (!isdigit(c))
-            return false;
-    }
-    return true;
-}
-
 ReservationSystem rs;
 
 // Customer Menu
 void customerMenu()
 {
-    string input;
     int choice;
     bool condition = true;
 
     while (condition)
     {
-        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
+        cout << "=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
         cout << "=====================================\n";
-        cout << "Enter choice: ";
-        getline(cin, input);
+        choice = getValidInt("Enter choice: ", 1, 6);
         cout << "\n";
-
-        try
-        {
-            if (!isValidInteger(input))
-            {
-                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-6).\n");
-            }
-
-            choice = stoi(input);
-            if (choice < 1 || choice > 6)
-            {
-                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, 3, 4, 5 or 6 only.\n");
-            }
-            else if (choice == 6)
-            {
-                cout << "Returning to main menu...\n";
-                condition = false;
-                return;
-            }
-        }
-        catch (const exception &e)
-        {
-            cout << e.what() << "\n";
-        }
 
         switch (choice)
         {
-
         // make reservation
         case 1:
         {
-            string name, phoneNo, date, time, gc;
+            string name, phoneNo, date, time;
             bool isValidPhoneNo = false, isValidGC = false;
             int guestCount;
 
@@ -402,7 +401,7 @@ void customerMenu()
                 getline(cin, name);
                 if (name.empty())
                 {
-                    cout << "Name cannot be empty! Please enter a valid name.\n";
+                    cout << "Input cannot be empty! Please enter a valid name.\n";
                 }
             } while (name.empty());
 
@@ -412,7 +411,7 @@ void customerMenu()
                 getline(cin, phoneNo);
                 if (phoneNo.empty())
                 {
-                    cout << "Contact Number cannot be empty! Please enter a valid contact number.\n";
+                    cout << "Input cannot be empty! Please enter a valid contact number.\n";
                 }
                 else if (phoneNo.length() != 11 || phoneNo[0] != '0' || phoneNo[1] != '9')
                 {
@@ -424,40 +423,12 @@ void customerMenu()
                 }
             } while (!isValidPhoneNo);
 
+            bool validNumber = false;
             do
             {
-                bool validNumber = true;
-                cout << "Number of Guests: ";
-                getline(cin, gc);
-                if (gc.empty())
-                {
-                    cout << "Guest Count cannot be empty! Please enter a valid guest count.\n";
-                    continue;
-                }
-
-                for (char c : gc)
-                {
-                    if (!isdigit(c))
-                    {
-                        validNumber = false;
-                        break;
-                    }
-                }
-
-                if (!validNumber)
-                {
-                    cout << "Invalid Guest Count! Please enter a valid number.\n";
-                    continue;
-                }
-
-                guestCount = stoi(gc);
-                if (guestCount < 1 || guestCount > 100)
-                {
-                    cout << "Guest Count must be between 1 and 10.\n";
-                    continue;
-                }
-                isValidGC = true;
-            } while (!isValidGC);
+                guestCount = getValidInt("Number of Guests: ", 1, 100);
+                validNumber = true;
+            } while (!validNumber);
 
             do
             {
@@ -689,51 +660,31 @@ void customerMenu()
             } while (confirm != "Y" && confirm != "N");
             break;
         }
+
+        case 6:
+        {
+            cout << "Returning to main menu...\n";
+            condition = false;
+            return;
+        }
         }
     }
 }
 
 void adminMenu()
 {
-    string input;
     int choice;
     bool condition = true;
 
     while (condition)
     {
-        cout << "\n=========== ADMIN MENU ===========\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
+        cout << "=========== ADMIN MENU ===========\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
         cout << "=====================================\n";
-        cout << "Enter choice: ";
-        getline(cin, input);
+        choice = getValidInt("Enter choice: ", 1, 3);
         cout << "\n";
-
-        try
-        {
-            if (!isValidInteger(input))
-            {
-                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).\n");
-            }
-
-            choice = stoi(input);
-            if (choice < 1 || choice > 3)
-            {
-                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, or 3 only.\n");
-            }
-            else if (choice == 3)
-            {
-                cout << "Returning to main menu...\n";
-                condition = false;
-                return;
-            }
-        }
-        catch (const exception &e)
-        {
-            cout << e.what() << "\n";
-        }
 
         switch (choice)
         {
-
             // view reservations
         case 1:
         {
@@ -822,51 +773,34 @@ int main()
 
     while (condition)
     {
-        string input;
+        int choice;
         cout << "Welcome to Reserve Eat! : LOG-IN PAGE\n";
         cout << "=========== MAIN MENU ===========\n";
         cout << "[1] Customer\n[2] Admin\n[3] Exit\n";
         cout << "=================================\n";
-        cout << "Enter your choice: ";
-        getline(cin, input);
+        choice = getValidInt("Enter your choice: ", 1, 3);
+        cout << "\n";
 
-        try
+        switch (choice)
         {
-            if (!isValidInteger(input))
-            {
-                throw invalid_argument("Invalid Input! Please enter a valid menu option (1-3).\n");
-            }
-
-            choice = stoi(input);
-            if (choice < 1 || choice > 3)
-            {
-                throw out_of_range("Invalid Menu Option! Please choose from 1, 2, or 3.\n");
-            }
-            else if (choice == 3)
-            {
-                cout << "Thank you for visiting Reserve Eat! Exiting program..." << endl;
-                condition = false;
-                break;
-            }
-
-            switch (choice)
-            {
-            case 1:
-            {
-                customerMenu();
-                break;
-            }
-
-            case 2:
-            {
-                adminMenu();
-                break;
-            }
-            }
+        case 1:
+        {
+            customerMenu();
+            break;
         }
-        catch (const exception &e)
+
+        case 2:
         {
-            cout << e.what() << "\n";
+            adminMenu();
+            break;
+        }
+
+        case 3:
+        {
+            cout << "Thank you for visiting Reserve Eat! Exiting program...\n";
+            condition = false;
+            break;
+        }
         }
     }
     return 0;
