@@ -30,13 +30,13 @@ int getValidInt(const string &prompt, int min, int max)
         {
             if (input.empty())
             {
-                throw invalid_argument("Input cannot be Empty! Please enter a valid whole number.\n");
+                throw invalid_argument("Input cannot be empty! Please enter a valid whole number.\n");
             }
             for (char c : input)
             {
                 if (!isdigit(c))
                 {
-                    throw invalid_argument("Invalid Input! Please enter a valid whole number.\n");
+                    throw invalid_argument("Invalid input! Please enter a valid whole number.\n");
                 }
             }
             value = stoi(input);
@@ -100,7 +100,9 @@ public:
     void editReservation(const string &id);
     void cancelReservation(const string &id);
     void displayAll();
+    bool hasStatus(const string &status) const;
     void displayByStatus(const string &status);
+    string getStatus(const string &id) const;
     void approveReservation(const string &id);
     void settlePayment(const string &id);
     bool exists(const string &id);
@@ -118,7 +120,7 @@ void ReservationSystem::addReservation(const string &name, const string &phoneNo
 {
     string id = generateID();
     reservations.emplace_back(id, name, phoneNo, guestCount, date, time, STATUS[0]); // STATUS[0] = "Pending"
-    cout << "Reservation made successfully! ID: " << id << endl;
+    cout << "Reservation made successfully! Reservation ID: " << id << endl;
 }
 
 void ReservationSystem::editReservation(const string &id)
@@ -194,10 +196,22 @@ void ReservationSystem::editReservation(const string &id)
     cout << "Reservation ID not found.\n";
 }
 
+bool ReservationSystem::hasStatus(const string &status) const
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getStatus() == status)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Implementation of displayByStatus method
 void ReservationSystem::displayByStatus(const string &status)
 {
-    cout << "============================================ RESERVATIONS - STATUS: " << status << " ============================================\n";
+    cout << "============================================ RESERVATIONS - STATUS: " << toUpperCase(status) << " ===========================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
          << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
          << setw(15) << "Status" << endl;
@@ -209,6 +223,18 @@ void ReservationSystem::displayByStatus(const string &status)
             res.displayReservations();
         }
     }
+}
+
+string ReservationSystem::getStatus(const string &id) const
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getID() == id)
+        {
+            return res.getStatus();
+        }
+    }
+    return "";
 }
 
 // Implementation of displayAll method
@@ -380,7 +406,7 @@ void customerMenu()
 
     while (condition)
     {
-        cout << "=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
+        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
         cout << "=====================================\n";
         choice = getValidInt("Enter choice: ", 1, 6);
         cout << "\n";
@@ -451,7 +477,7 @@ void customerMenu()
             } while (time.empty());
 
             rs.addReservation(name, phoneNo, guestCount, date, time);
-            cout << "\n==============================================================\n";
+            cout << "==============================================================\n";
 
             break;
         }
@@ -465,7 +491,14 @@ void customerMenu()
                 break;
             }
 
-            rs.displayAll();
+            if (!rs.hasStatus(STATUS[0])) // STATUS[0] = "Pending"
+            {
+                cout << "No pending reservations to edit.\n";
+                break;
+            }
+
+            rs.displayByStatus(STATUS[0]); // STATUS[0] = "Pending"
+
             string id, confirm;
             cout << "Enter Reservation ID to edit: ";
             getline(cin, id);
@@ -478,6 +511,12 @@ void customerMenu()
             if (!rs.exists(id))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            if (rs.getStatus(id) != STATUS[0]) // Check if the status is "Pending"
+            {
+                cout << "Only reservations with 'Pending' status can be edited.\n";
                 break;
             }
 
@@ -582,7 +621,14 @@ void customerMenu()
                 break;
             }
 
+            if (!rs.hasStatus(STATUS[1])) // STATUS[1] = "Approved"
+            {
+                cout << "No approved reservations to settle payments.\n";
+                break;
+            }
+
             rs.displayByStatus(STATUS[1]); // STATUS[1] = "Approved"
+
             string id, confirm;
             cout << "Enter Reservation ID to settle payment: ";
             getline(cin, id);
@@ -596,6 +642,12 @@ void customerMenu()
             if (!rs.exists(id))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            if (rs.getStatus(id) != STATUS[1]) // Check if the status is "Approved"
+            {
+                cout << "Reservation ID " << id << " is either not approved yet or already settled.\n";
                 break;
             }
 
@@ -663,7 +715,7 @@ void customerMenu()
 
         case 6:
         {
-            cout << "Returning to main menu...\n";
+            cout << "Returning to main menu...\n\n";
             condition = false;
             return;
         }
@@ -678,8 +730,8 @@ void adminMenu()
 
     while (condition)
     {
-        cout << "=========== ADMIN MENU ===========\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
-        cout << "=====================================\n";
+        cout << "\n================ ADMIN MENU ================\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
+        cout << "============================================\n";
         choice = getValidInt("Enter choice: ", 1, 3);
         cout << "\n";
 
@@ -706,7 +758,14 @@ void adminMenu()
                 break;
             }
 
+            if (!rs.hasStatus(STATUS[0])) // STATUS[0] = "Pending"
+            {
+                cout << "No pending reservations to display.\n";
+                break;
+            }
+
             rs.displayByStatus(STATUS[0]);
+
             string id, confirm;
             cout << "Enter Reservation ID to approve: ";
             getline(cin, id);
@@ -720,6 +779,12 @@ void adminMenu()
             if (!rs.exists(id))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
+                break;
+            }
+
+            if (rs.getStatus(id) != STATUS[0]) // Check if the status is "Pending"
+            {
+                cout << "Reservation ID " << id << " is either approved or already settled.\n";
                 break;
             }
 
@@ -758,7 +823,7 @@ void adminMenu()
         // back to main menu
         case 3:
         {
-            cout << "Returning to main menu...\n";
+            cout << "Returning to main menu...\n\n";
             condition = false;
             return;
         }
