@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <iomanip> // Used for formatting output
 #include <algorithm>
+#include <fstream> // Used for file operations
 using namespace std;
 
 const string STATUS[] = {"Pending", "Approved", "Settled"};
@@ -65,6 +66,8 @@ public:
     Reservation(string id, string name, string phoneNo, int guestCount, string date, string time, string status) : id(id), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
 
     string getID() const { return id; }
+    string getName() const { return name; }
+    string getPhoneNo() const { return phoneNo; }
     string getStatus() const { return status; }
     int getGuestCount() const { return guestCount; }
     string getDate() const { return date; }
@@ -96,6 +99,7 @@ private:
 public:
     //  Reservation System methods
     string generateID();
+    void logToFile(const string &logEntry);
     void addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
     void editReservation(const string &id);
     void cancelReservation(const string &id);
@@ -112,8 +116,40 @@ public:
 // Implementation of generateID method
 string ReservationSystem::generateID()
 {
-    return to_string(++reservationCounter); // Increments and returns new ID
+    // Load counter from file
+    ifstream inFile("counter.txt");
+    if (inFile.is_open())
+    {
+        inFile >> reservationCounter;
+        inFile.close();
+    }
+
+    reservationCounter++; // Increment counter
+
+    // Save updated counter to file
+    ofstream outFile("counter.txt");
+    if (outFile.is_open())
+    {
+        outFile << reservationCounter;
+        outFile.close();
+    }
+
+    return to_string(reservationCounter);
 }
+
+void ReservationSystem::logToFile(const string &logEntry)
+{
+    ofstream log("reservation_log.txt", ios::app); // Append mode
+    if (log.is_open())
+    {
+        time_t now = time(0);
+        string timestamp = ctime(&now);
+        timestamp.pop_back(); // Remove trailing newline
+        log << "[" << timestamp << "] " << logEntry << "\n";
+        log.close();
+    }
+}
+
 
 // Implementation of addReservation method
 void ReservationSystem::addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
@@ -266,7 +302,6 @@ void ReservationSystem::approveReservation(const string &id)
     cout << "Reservation either not found or not pending.\n";
 }
 
-// settlePayment method - approved to settled
 void ReservationSystem::settlePayment(const string &id)
 {
     for (auto &res : reservations)
@@ -274,11 +309,33 @@ void ReservationSystem::settlePayment(const string &id)
         if (res.getID() == id && res.getStatus() == STATUS[1]) // STATUS[1] = "Approved"
         {
             res.setStatus(STATUS[2]); // STATUS[2] = "Settled"
+
+            // Log the settled reservation
+            ofstream logFile("settled_reservations.txt", ios::app);
+            if (logFile.is_open())
+            {
+                time_t now = time(0);
+                string dt = ctime(&now);
+                dt.pop_back(); // remove newline
+
+                logFile << "[SETTLED] ID: " << res.getID()
+                        << " | Name: " << res.getName()
+                        << " | Phone: " << res.getPhoneNo()
+                        << " | Guests: " << res.getGuestCount()
+                        << " | Date: " << res.getDate()
+                        << " | Time: " << res.getTime()
+                        << " | Status: Settled"
+                        << " | Settled At: " << dt << endl;
+                logFile.close();
+            }
+
             return;
         }
     }
+
     cout << "Reservation must be approved before settling payment.\n";
 }
+
 
 void ReservationSystem::cancelReservation(const string &id)
 {
@@ -585,6 +642,12 @@ void customerMenu()
                 break;
             }
 
+            if (rs.hasStatus(STATUS[2])) // STATUS[0] = "Pending"
+            {
+                cout << "Settled Reservation cannot be cancelled.\n";
+                break;
+            }
+
             do
             {
                 cout << "Are you sure you want to cancel reservation ID " << id << "? (Y/N): ";
@@ -692,6 +755,8 @@ void customerMenu()
                         break;
 
                         cout << "Payment for reservation ID " << id << " has been settled successfully!\n";
+
+                        
                     }
                 }
 
