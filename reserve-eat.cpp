@@ -10,6 +10,46 @@ using namespace std;
 const string STATUS[] = {"Pending", "Approved", "Settled"};
 const int MAX_RESERVATIONS = 100;
 
+struct User
+{
+    string username;
+    string password;
+};
+
+vector<User> users;
+
+bool userExists(const string &username);
+bool authenticateUser(const string &username, const string &password);
+void registerUser(const string &username, const string &password);
+void customerMenu(const string &username);
+void adminMenu();
+
+bool userExists(const string &username) {
+    for (const auto &user : users) {
+        if (user.username == username) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool authenticateUser(const string &username, const string &password) {
+    for (const auto &user : users) {
+        if (user.username == username && user.password == password) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void registerUser(const string &username, const string &password) {
+    users.push_back({username, password});
+}
+
+// Forward declaration of your menu functions
+void customerMenu(const string &username);
+void adminMenu();
+
 string toUpperCase(string str)
 {
     transform(str.begin(), str.end(), str.begin(), ::toupper);
@@ -58,14 +98,15 @@ int getValidInt(const string &prompt, int min, int max)
 class Reservation
 {
 private:
-    string id, name, phoneNo, date, time, status;
+    string id, username, name, phoneNo, date, time, status;
     int guestCount;
 
 public:
     Reservation() {}
-    Reservation(string id, string name, string phoneNo, int guestCount, string date, string time, string status) : id(id), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
+    Reservation(string id, string username, string name, string phoneNo, int guestCount, string date, string time, string status) : id(id), username(username), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
 
     string getID() const { return id; }
+    string getUsername() const { return username; }
     string getName() const { return name; }
     string getPhoneNo() const { return phoneNo; }
     string getStatus() const { return status; }
@@ -100,12 +141,13 @@ public:
     //  Reservation System methods
     string generateID();
     void logToFile(const string &logEntry);
-    void addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
-    void editReservation(const string &id);
+    void addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
+    void editReservation(const string &id, const string &username);
     void cancelReservation(const string &id);
     void displayAll();
     bool hasStatus(const string &status) const;
     void displayByStatus(const string &status);
+    void displayUserReservations(const string &username);
     string getStatus(const string &id) const;
     void approveReservation(const string &id);
     void settlePayment(const string &id);
@@ -150,20 +192,19 @@ void ReservationSystem::logToFile(const string &logEntry)
     }
 }
 
-
 // Implementation of addReservation method
-void ReservationSystem::addReservation(const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
+void ReservationSystem::addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
 {
     string id = generateID();
-    reservations.emplace_back(id, name, phoneNo, guestCount, date, time, STATUS[0]); // STATUS[0] = "Pending"
+    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]); // STATUS[0] = "Pending"
     cout << "Reservation made successfully! Reservation ID: " << id << endl;
 }
 
-void ReservationSystem::editReservation(const string &id)
+void ReservationSystem::editReservation(const string &id, const string &username)
 {
     for (auto &res : reservations)
     {
-        if (res.getID() == id)
+        if (res.getID() == id && res.getUsername() == username)
         {
             // Only allow editing if status is "Pending"
             if (res.getStatus() != "Pending")
@@ -261,6 +302,21 @@ void ReservationSystem::displayByStatus(const string &status)
     }
 }
 
+void ReservationSystem::displayUserReservations(const string &username)
+{
+    cout << "\n========================= RESERVATIONS FOR USER: " << username << " =========================\n";
+    cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
+         << setw(15) << "Status" << endl;
+    cout << "-----------------------------------------------------------------------------------------------\n";
+
+    for (const auto &res : reservations)
+    {
+        if (res.getUsername() == username)
+            res.displayReservations();
+    }
+}
+
 string ReservationSystem::getStatus(const string &id) const
 {
     for (const auto &res : reservations)
@@ -335,7 +391,6 @@ void ReservationSystem::settlePayment(const string &id)
 
     cout << "Reservation must be approved before settling payment.\n";
 }
-
 
 void ReservationSystem::cancelReservation(const string &id)
 {
@@ -456,14 +511,14 @@ int getValidPaymentMethodInput()
 ReservationSystem rs;
 
 // Customer Menu
-void customerMenu()
+void customerMenu(const string &username)
 {
     int choice;
     bool condition = true;
 
     while (condition)
     {
-        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Back to main menu\n";
+        cout << "\n=========== CUSTOMER MENU ===========\n[1] Make reservation\n[2] Edit reservation\n[3] View Reservation\n[4] Cancel reservation\n[5] Settle Payment\n[6] Log out\n";
         cout << "=====================================\n";
         choice = getValidInt("Enter choice: ", 1, 6);
         cout << "\n";
@@ -533,7 +588,7 @@ void customerMenu()
                 }
             } while (time.empty());
 
-            rs.addReservation(name, phoneNo, guestCount, date, time);
+            rs.addReservation(username, name, phoneNo, guestCount, date, time);
             cout << "==============================================================\n";
 
             break;
@@ -584,7 +639,7 @@ void customerMenu()
                 confirm = toUpperCase(confirm);
                 if (confirm == "Y")
                 {
-                    rs.editReservation(id);
+                    rs.editReservation(id, username);
                 }
                 else if (confirm == "N")
                 {
@@ -755,8 +810,6 @@ void customerMenu()
                         break;
 
                         cout << "Payment for reservation ID " << id << " has been settled successfully!\n";
-
-                        
                     }
                 }
 
@@ -780,7 +833,7 @@ void customerMenu()
 
         case 6:
         {
-            cout << "Returning to main menu...\n\n";
+            cout << "Logging out...\n\n";
             condition = false;
             return;
         }
@@ -795,7 +848,7 @@ void adminMenu()
 
     while (condition)
     {
-        cout << "\n================ ADMIN MENU ================\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Back to main menu\n";
+        cout << "\n================ ADMIN MENU ================\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Log out\n";
         cout << "============================================\n";
         choice = getValidInt("Enter choice: ", 1, 3);
         cout << "\n";
@@ -888,7 +941,7 @@ void adminMenu()
         // back to main menu
         case 3:
         {
-            cout << "Returning to main menu...\n\n";
+            cout << "Logging out...\n\n";
             condition = false;
             return;
         }
@@ -915,7 +968,34 @@ int main()
         {
         case 1:
         {
-            customerMenu();
+            string username, password;
+            bool isAuthenticated = false;
+            cout << "========== CUSTOMER LOG IN ==========" << endl;
+            cout << "=====================================\n";
+            cout << "Username: ";
+            getline(cin, username);
+            cout << "Password: ";
+            getline(cin, password);
+            if (userExists(username))
+            {
+                // User exists, so authenticate the password
+                if (authenticateUser(username, password))
+                {
+                    cout << "Login successful.\n";
+                    customerMenu(username); // Proceed to customer menu
+                }
+                else
+                {
+                    cout << "Incorrect password.\n";
+                }
+            }
+            else
+            {
+                // User doesn't exist, register new user
+                cout << "New user registered successfully.\n";
+                registerUser(username, password);
+                customerMenu(username); // Proceed to customer menu after registration
+            }
             break;
         }
 
