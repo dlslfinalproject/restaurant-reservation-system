@@ -475,10 +475,10 @@ bool ReservationSystem::isUserReservationEmpty(const string &username) const
     {
         if (res.getUsername() == username)
         {
-            return false; 
+            return false;
         }
     }
-    return true; 
+    return true;
 }
 
 class PaymentMethod
@@ -572,6 +572,65 @@ int getValidPaymentMethodInput()
 
 ReservationSystem rs;
 
+bool isValidDate(const string &date)
+{
+    if (date.length() != 10 || date[2] != '-' || date[5] != '-')
+        return false;
+
+    string mm = date.substr(0, 2);
+    string dd = date.substr(3, 2);
+    string yyyy = date.substr(6, 4);
+
+    int month = stoi(mm);
+    int day = stoi(dd);
+    int year = stoi(yyyy);
+
+    if (month < 1 || month > 12)
+        return false;
+
+    if (day < 1 || day > 31)
+        return false;
+
+    // Basic month-day limits (not leap year accurate)
+    int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (month == 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+        daysInMonth[1] = 29;
+
+    if (day > daysInMonth[month - 1])
+        return false;
+
+    return true;
+}
+
+bool isValidTime(const string &time)
+{
+    if (time.length() != 8 || time[2] != ':' || time[5] != ' ')
+        return false;
+
+    string upperTime = toUpperCase(time);
+
+    if ((upperTime[6] != 'A' && upperTime[6] != 'P') || upperTime[7] != 'M')
+        return false;
+
+    string hh = upperTime.substr(0, 2);
+    string mm = upperTime.substr(3, 2);
+
+    int hour, minute;
+    try {
+        hour = stoi(hh);
+        minute = stoi(mm);
+    } catch (...) {
+        return false;
+    }
+
+    if (hour < 1 || hour > 12)
+        return false;
+    if (minute < 0 || minute > 59)
+        return false;
+
+    return true;
+}
+
 // Customer Menu
 void customerMenu(const string &username)
 {
@@ -638,7 +697,12 @@ void customerMenu(const string &username)
                 {
                     cout << "Date cannot be empty! Please enter a valid date.\n";
                 }
-            } while (date.empty());
+                else if (!isValidDate(date))
+                {
+                    cout << "Invalid date format or value! Please follow MM-DD-YYYY.\n";
+                    date.clear(); // Clear invalid input to retry
+                }
+            } while (date.empty() || !isValidDate(date));
 
             do
             {
@@ -647,8 +711,11 @@ void customerMenu(const string &username)
                 if (time.empty())
                 {
                     cout << "Time cannot be empty! Please enter a valid time.\n";
+                } else if (!isValidTime(time)) {
+                    cout << "Invalid time format or value! Please follow HH:MM AM/PM.\n";
+                    time.clear(); // Clear invalid input to retry
                 }
-            } while (time.empty());
+            } while (time.empty() || !isValidTime(time));
 
             rs.addReservation(username, name, phoneNo, guestCount, date, time);
             cout << "==============================================================\n";
