@@ -24,25 +24,32 @@ void registerUser(const string &username, const string &password);
 void customerMenu(const string &username);
 void adminMenu();
 
-bool userExists(const string &username) {
-    for (const auto &user : users) {
-        if (user.username == username) {
+bool userExists(const string &username)
+{
+    for (const auto &user : users)
+    {
+        if (user.username == username)
+        {
             return true;
         }
     }
     return false;
 }
 
-bool authenticateUser(const string &username, const string &password) {
-    for (const auto &user : users) {
-        if (user.username == username && user.password == password) {
+bool authenticateUser(const string &username, const string &password)
+{
+    for (const auto &user : users)
+    {
+        if (user.username == username && user.password == password)
+        {
             return true;
         }
     }
     return false;
 }
 
-void registerUser(const string &username, const string &password) {
+void registerUser(const string &username, const string &password)
+{
     users.push_back({username, password});
 }
 
@@ -146,13 +153,17 @@ public:
     void cancelReservation(const string &id);
     void displayAll();
     bool hasStatus(const string &status) const;
+    bool hasUserReservationWithStatus(const string &status, const string &username) const;
     void displayByStatus(const string &status);
     void displayUserReservations(const string &username);
+    void displayUserReservationByStatus(const string &status, const string &username);
     string getStatus(const string &id) const;
     void approveReservation(const string &id);
     void settlePayment(const string &id);
     bool exists(const string &id);
+    bool existsForUser(const string &id, const string &username) const;
     bool isEmpty() const;
+    bool isUserReservationEmpty(const string &username) const;
 };
 
 // Implementation of generateID method
@@ -285,6 +296,18 @@ bool ReservationSystem::hasStatus(const string &status) const
     return false;
 }
 
+bool ReservationSystem::hasUserReservationWithStatus(const string &status, const string &username) const
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getStatus() == status && res.getUsername() == username)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Implementation of displayByStatus method
 void ReservationSystem::displayByStatus(const string &status)
 {
@@ -304,7 +327,7 @@ void ReservationSystem::displayByStatus(const string &status)
 
 void ReservationSystem::displayUserReservations(const string &username)
 {
-    cout << "\n========================= RESERVATIONS FOR USER: " << username << " =========================\n";
+    cout << "\n================================================== RESERVATIONS FOR USER: " << username << " ==================================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
          << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
          << setw(15) << "Status" << endl;
@@ -314,6 +337,23 @@ void ReservationSystem::displayUserReservations(const string &username)
     {
         if (res.getUsername() == username)
             res.displayReservations();
+    }
+}
+
+// Implementation of displayByStatus method
+void ReservationSystem::displayUserReservationByStatus(const string &status, const string &username)
+{
+    cout << "============================================ RESERVATIONS - STATUS: " << toUpperCase(status) << " ===========================================\n";
+    cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
+         << setw(15) << "Status" << endl;
+    cout << "------------------------------------------------------------------------------------------------------------------------\n";
+    for (const auto &res : reservations)
+    {
+        if (res.getUsername() == username && res.getStatus() == status)
+        {
+            res.displayReservations();
+        }
     }
 }
 
@@ -414,9 +454,31 @@ bool ReservationSystem::exists(const string &id)
     return false;
 }
 
+bool ReservationSystem::existsForUser(const string &id, const string &username) const
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getID() == id && res.getUsername() == username)
+            return true;
+    }
+    return false;
+}
+
 bool ReservationSystem::isEmpty() const
 {
     return reservations.empty();
+}
+
+bool ReservationSystem::isUserReservationEmpty(const string &username) const
+{
+    for (const auto &res : reservations)
+    {
+        if (res.getUsername() == username)
+        {
+            return false; 
+        }
+    }
+    return true; 
 }
 
 class PaymentMethod
@@ -597,19 +659,19 @@ void customerMenu(const string &username)
         // edit reservation
         case 2:
         {
-            if (rs.isEmpty())
+            if (rs.isUserReservationEmpty(username))
             {
                 cout << "No reservations to edit.\n";
                 break;
             }
 
-            if (!rs.hasStatus(STATUS[0])) // STATUS[0] = "Pending"
+            if (!rs.hasUserReservationWithStatus(STATUS[0], username)) // STATUS[0] = "Pending"
             {
                 cout << "No pending reservations to edit.\n";
                 break;
             }
 
-            rs.displayByStatus(STATUS[0]); // STATUS[0] = "Pending"
+            rs.displayUserReservationByStatus(STATUS[0], username); // STATUS[0] = "Pending"
 
             string id, confirm;
             cout << "Enter Reservation ID to edit: ";
@@ -620,7 +682,7 @@ void customerMenu(const string &username)
                 break;
             }
 
-            if (!rs.exists(id))
+            if (!rs.existsForUser(id, username))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
                 break;
@@ -661,25 +723,25 @@ void customerMenu(const string &username)
         // view reservation
         case 3:
         {
-            if (rs.isEmpty())
+            if (rs.isUserReservationEmpty(username))
             {
                 cout << "No reservations to display.\n";
                 break;
             }
-            rs.displayAll();
+            rs.displayUserReservations(username);
             break;
         }
 
         // cancel reservation
         case 4:
         {
-            if (rs.isEmpty())
+            if (rs.isUserReservationEmpty(username))
             {
                 cout << "No reservations to cancel.\n";
                 break;
             }
 
-            rs.displayAll();
+            rs.displayUserReservations(username);
 
             string id, confirm;
             cout << "Enter Reservation ID to cancel: ";
@@ -691,7 +753,7 @@ void customerMenu(const string &username)
                 break;
             }
 
-            if (!rs.exists(id))
+            if (!rs.existsForUser(id, username))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
                 break;
@@ -733,19 +795,19 @@ void customerMenu(const string &username)
         // settle payment
         case 5:
         {
-            if (rs.isEmpty())
+            if (rs.isUserReservationEmpty(username))
             {
                 cout << "No reservations to settle payment.\n";
                 break;
             }
 
-            if (!rs.hasStatus(STATUS[1])) // STATUS[1] = "Approved"
+            if (!rs.hasUserReservationWithStatus(STATUS[1], username)) // STATUS[1] = "Approved"
             {
                 cout << "No approved reservations to settle payments.\n";
                 break;
             }
 
-            rs.displayByStatus(STATUS[1]); // STATUS[1] = "Approved"
+            rs.displayUserReservationByStatus(STATUS[1], username); // STATUS[1] = "Approved"
 
             string id, confirm;
             cout << "Enter Reservation ID to settle payment: ";
@@ -757,7 +819,7 @@ void customerMenu(const string &username)
                 break;
             }
 
-            if (!rs.exists(id))
+            if (!rs.existsForUser(id, username))
             {
                 cout << "Reservation with ID " << id << " does not exist.\n";
                 break;
