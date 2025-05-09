@@ -216,6 +216,9 @@ private:
 public:
     //  Reservation System methods
     string generateID();
+    void addReservationSilent(const string &username, const string &name, const string &phoneNo,
+        int guestCount, const string &date, const string &time);
+    void initializeSampleReservations();
     void logToFile(const string &logEntry);
     void addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
     void editReservation(const string &id, const string &username);
@@ -235,6 +238,21 @@ public:
     bool isEmpty() const;
     bool isUserReservationEmpty(const string &username) const;
 };
+
+void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo,
+    int guestCount, const string &date, const string &time)
+{
+string id = generateID();
+reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
+}
+
+void ReservationSystem::initializeSampleReservations()
+{
+    addReservationSilent("zurineeirish@gmail.com", "Zurinee Belo", "09868366562", 80, "09-30-2025", "09:00 PM");
+    addReservationSilent("jhenelle@gmail.com", "Jhenelle Alonzo", "09926639727", 50, "02-26-2025", "09:00 PM");
+    addReservationSilent("janeallyson@gmail.com", "Jane Paray", "09171234567", 20, "06-15-2025", "07:00 PM");
+    addReservationSilent("katherineanne@gmail.com", "Katherine Liwanag", "09171234567", 20, "06-15-2025", "07:00 PM");
+}
 
 // Implementation of generateID method
 string ReservationSystem::generateID()
@@ -1162,6 +1180,7 @@ void adminMenu()
 
 int main()
 {
+    rs.initializeSampleReservations();
     bool condition = true;
     int choice;
 
