@@ -109,14 +109,24 @@ int getValidInt(const string &prompt, int min, int max)
     return value;
 }
 
-bool isValidDate(const string &date)
-{
+bool isAllDigits(const string &str) {
+    for (char c : str) {
+        if (!isdigit(c))
+            return false;
+    }
+    return true;
+}
+
+bool isValidDate(const string &date) {
     if (date.length() != 10 || date[2] != '-' || date[5] != '-')
         return false;
 
     string mm = date.substr(0, 2);
     string dd = date.substr(3, 2);
     string yyyy = date.substr(6, 4);
+
+    if (!isAllDigits(mm) || !isAllDigits(dd) || !isAllDigits(yyyy))
+        return false;
 
     int month = stoi(mm);
     int day = stoi(dd);
@@ -128,7 +138,6 @@ bool isValidDate(const string &date)
     if (day < 1 || day > 31)
         return false;
 
-    // Basic month-day limits (not leap year accurate)
     int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if (month == 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
         daysInMonth[1] = 29;
@@ -971,7 +980,7 @@ void customerMenu(const string &username)
 
             if (rs.getStatus(id) != STATUS[1]) // Check if the status is "Approved"
             {
-                cout << "Reservation ID " << id << " is either not approved yet or already settled.\n";
+                cout << "Reservation ID " << id << " is either rejected, not approved yet, or already settled.\n";
                 break;
             }
 
@@ -1109,7 +1118,7 @@ void adminMenu()
 
             if (rs.getStatus(id) != STATUS[0]) // Check if the status is "Pending"
             {
-                cout << "Reservation ID " << id << " is either approved or already settled.\n";
+                cout << "Reservation ID " << id << " status is already updated.\n";
                 break;
             }
 
