@@ -228,8 +228,7 @@ private:
 public:
     //  Reservation System methods
     string generateID();
-    void addReservationSilent(const string &username, const string &name, const string &phoneNo,
-                              int guestCount, const string &date, const string &time);
+    void addReservationSilent(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
     void initializeSampleReservations();
     void logToFile(const string &logEntry);
     void addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
@@ -251,8 +250,7 @@ public:
     bool isUserReservationEmpty(const string &username) const;
 };
 
-void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo,
-                                             int guestCount, const string &date, const string &time)
+void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
 {
     string id = generateID();
     reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
@@ -349,7 +347,7 @@ void ReservationSystem::editReservation(const string &id, const string &username
                 newGuestCount = stoi(newGC);
                 if (newGuestCount < 1 || newGuestCount > 100)
                 {
-                    cout << "Guest Count must be between 1 and 100.\n";
+                    cout << "Invalid input! Guest Count must be between 1 and 100.\n";
                     continue;
                 }
                 validGC = true;
@@ -361,7 +359,7 @@ void ReservationSystem::editReservation(const string &id, const string &username
                 getline(cin, newDate);
                 if (newDate.empty())
                 {
-                    cout << "Date cannot be empty. Please enter a valid date.\n";
+                    cout << "Date cannot be empty! Please enter a valid date.\n";
                 }
                 else if (!isValidDate(newDate))
                 {
@@ -376,7 +374,7 @@ void ReservationSystem::editReservation(const string &id, const string &username
                 getline(cin, newTime);
                 if (newTime.empty())
                 {
-                    cout << "Time cannot be empty.\n";
+                    cout << "Time cannot be empty! Please enter a valid time.\n";
                 }
                 else if (!isValidTime(newTime))
                 {
@@ -693,7 +691,7 @@ int getValidPaymentMethodInput()
         else if (input == "CARD")
             return 3;
         else
-            cout << "Invalid payment method. Please enter one of the following: Maya, GCash, or Card.\n\n";
+            cout << "Invalid payment method! Please enter one of the following: Maya, GCash, or Card.\n\n";
     }
 }
 
@@ -914,9 +912,9 @@ void customerMenu(const string &username)
                 break;
             }
 
-            if (rs.hasStatus(STATUS[2]))
+            if (rs.hasStatus(STATUS[2]) || rs.hasStatus(STATUS[3]))
             {
-                cout << "Settled Reservation cannot be cancelled.\n";
+                cout << "Settled or Rejected Reservation cannot be cancelled.\n";
                 break;
             }
 
@@ -1066,7 +1064,7 @@ void adminMenu()
 
     while (condition)
     {
-        cout << "\n================ ADMIN MENU ================\n[1] View All Reservations\n[2] View and Approve Pending Reservations \n[3] Log out\n";
+        cout << "\n================ ADMIN MENU ================\n[1] View All Reservations\n[2] Review Reservations \n[3] Log out\n";
         cout << "============================================\n";
         choice = getValidInt("Enter choice: ", 1, 3);
         cout << "\n";
