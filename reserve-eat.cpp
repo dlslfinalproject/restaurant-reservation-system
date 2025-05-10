@@ -109,15 +109,18 @@ int getValidInt(const string &prompt, int min, int max)
     return value;
 }
 
-bool isAllDigits(const string &str) {
-    for (char c : str) {
+bool isAllDigits(const string &str)
+{
+    for (char c : str)
+    {
         if (!isdigit(c))
             return false;
     }
     return true;
 }
 
-bool isValidDate(const string &date) {
+bool isValidDate(const string &date)
+{
     if (date.length() != 10 || date[2] != '-' || date[5] != '-')
         return false;
 
@@ -226,7 +229,7 @@ public:
     //  Reservation System methods
     string generateID();
     void addReservationSilent(const string &username, const string &name, const string &phoneNo,
-        int guestCount, const string &date, const string &time);
+                              int guestCount, const string &date, const string &time);
     void initializeSampleReservations();
     void logToFile(const string &logEntry);
     void addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time);
@@ -249,10 +252,10 @@ public:
 };
 
 void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo,
-    int guestCount, const string &date, const string &time)
+                                             int guestCount, const string &date, const string &time)
 {
-string id = generateID();
-reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
+    string id = generateID();
+    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
 }
 
 void ReservationSystem::initializeSampleReservations()
@@ -1210,11 +1213,27 @@ int main()
             string username, password;
             bool isAuthenticated = false;
             cout << "========== CUSTOMER LOG IN ==========" << endl;
-            cout << "Username: ";
-            getline(cin, username);
-            cout << "Password: ";
-            getline(cin, password);
+            do
+            {
+                cout << "Username: ";
+                getline(cin, username);
+                if (username.empty())
+                {
+                    cout << "Input cannot be empty! Please enter a valid username.\n";
+                }
+            } while (username.empty());
+
+            do
+            {
+                cout << "Password: ";
+                getline(cin, password);
+                if (password.empty())
+                {
+                    cout << "Input cannot be empty! Please enter a valid password.\n";
+                }
+            } while (password.empty());
             cout << "=====================================" << endl;
+
             if (userExists(username))
             {
                 // User exists, so authenticate the password
