@@ -1217,6 +1217,7 @@ int main()
             {
                 cout << "Username: ";
                 getline(cin, username);
+                username = toUpperCase(username);
                 if (username.empty())
                 {
                     cout << "Input cannot be empty! Please enter a valid username.\n";
@@ -1231,7 +1232,11 @@ int main()
                 {
                     cout << "Input cannot be empty! Please enter a valid password.\n";
                 }
-            } while (password.empty());
+                else if (password.length() < 8)
+                {
+                    cout << "Invalid input! Password must be at least 8 characters long.\n";
+                }
+            } while (password.empty() || password.length() < 8);
             cout << "=====================================" << endl;
 
             if (userExists(username))
