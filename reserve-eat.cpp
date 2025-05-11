@@ -4,25 +4,27 @@
 Encapsulation, Inheritance, Polymorphism, and Abstraction. It also implements the Singleton and Strategy Pattern for the Payment class to ensure that only one 
 instance of the payment method is created and used throughout the program. In generating reports, file handling is used for storing and retrieving settled reservation data. */
 
-#include <iostream>
+#include <iostream> // Used for input/output operations
 #include <vector> // Used for dynamic array
-#include <string>
-#include <stdexcept>
+#include <string> // Used for string manipulation
+#include <stdexcept> // Used for exception handling
 #include <iomanip> // Used for formatting output
-#include <algorithm>
+#include <algorithm> // Used for various algorithmic operations
 #include <fstream> // Used for file operations
-using namespace std;
+using namespace std; // Standard namespace
 
 const string STATUS[] = {"Pending", "Approved", "Settled", "Rejected"}; // 0, 1, 2, 3
-const int MAX_RESERVATIONS = 100;
+const int MAX_RESERVATIONS = 100; // Maximum number of reservations
 
+// Struct to hold user information
 struct User
 {
     string username;
     string password;
 };
 
-vector<User> users;
+vector<User> users; // Vector to hold user data
+
 
 bool userExists(const string &username);
 bool authenticateUser(const string &username, const string &password);
@@ -30,6 +32,7 @@ void registerUser(const string &username, const string &password);
 void customerMenu(const string &username);
 void adminMenu();
 
+// Function to check if a user exists in the system
 bool userExists(const string &username)
 {
     for (const auto &user : users)
@@ -42,6 +45,7 @@ bool userExists(const string &username)
     return false;
 }
 
+// Function to authenticate a user and return true if the username and password match
 bool authenticateUser(const string &username, const string &password)
 {
     for (const auto &user : users)
@@ -54,21 +58,24 @@ bool authenticateUser(const string &username, const string &password)
     return false;
 }
 
+// Function to register a new user
 void registerUser(const string &username, const string &password)
 {
     users.push_back({username, password});
 }
 
-// Forward declaration of your menu functions
+// Forward declaration of menu functions for customer and admin
 void customerMenu(const string &username);
 void adminMenu();
 
+// Function to convert a string to uppercase
 string toUpperCase(string str)
 {
     transform(str.begin(), str.end(), str.begin(), ::toupper);
     return str;
 }
 
+// Function to convert a string to lowercase
 string toLowerCase(const string &str)
 {
     string result = str;
@@ -115,6 +122,7 @@ int getValidInt(const string &prompt, int min, int max)
     return value;
 }
 
+// Function to check if a string contains only digits
 bool isAllDigits(const string &str)
 {
     for (char c : str)
@@ -125,6 +133,7 @@ bool isAllDigits(const string &str)
     return true;
 }
 
+// Function to check if a date is valid
 bool isValidDate(const string &date)
 {
     if (date.length() != 10 || date[2] != '-' || date[5] != '-')
@@ -157,6 +166,7 @@ bool isValidDate(const string &date)
     return true;
 }
 
+// Function to check if a time is valid
 bool isValidTime(const string &time)
 {
     if (time.length() != 8 || time[2] != ':' || time[5] != ' ')
@@ -189,6 +199,7 @@ bool isValidTime(const string &time)
     return true;
 }
 
+// Class to represent a reservation
 class Reservation
 {
 private:
@@ -225,6 +236,7 @@ public:
     }
 };
 
+// Class to represent the reservation system
 class ReservationSystem
 {
 private:
@@ -256,12 +268,14 @@ public:
     bool isUserReservationEmpty(const string &username) const;
 };
 
+// Add a reservation without user interaction
 void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
 {
     string id = generateID();
     reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
 }
 
+// Initialize sample reservations
 void ReservationSystem::initializeSampleReservations()
 {
     addReservationSilent("zurineeirish@gmail.com", "Zurinee Belo", "09868366562", 6, "09-30-2025", "09:00 PM");
@@ -294,6 +308,7 @@ string ReservationSystem::generateID()
     return to_string(reservationCounter);
 }
 
+// Implementation of recording logs to file
 void ReservationSystem::logToFile(const string &logEntry)
 {
     ofstream log("reservation_log.txt", ios::app); // Append mode
@@ -307,7 +322,7 @@ void ReservationSystem::logToFile(const string &logEntry)
     }
 }
 
-// Implementation of addReservation method
+// Adds a reservation to the system
 void ReservationSystem::addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
 {
     string id = generateID();
@@ -315,6 +330,7 @@ void ReservationSystem::addReservation(const string &username, const string &nam
     cout << "Reservation made successfully! Reservation ID: " << id << endl;
 }
 
+// Enables the user to edit their reservation
 void ReservationSystem::editReservation(const string &id, const string &username)
 {
     for (auto &res : reservations)
@@ -398,6 +414,7 @@ void ReservationSystem::editReservation(const string &id, const string &username
     cout << "Reservation ID not found.\n";
 }
 
+// Identifies if a reservation with a specific status exists
 bool ReservationSystem::hasStatus(const string &status) const
 {
     for (const auto &res : reservations)
@@ -410,6 +427,7 @@ bool ReservationSystem::hasStatus(const string &status) const
     return false;
 }
 
+// Identifies if a user has a reservation with a specific status
 bool ReservationSystem::hasUserReservationWithStatus(const string &status, const string &username) const
 {
     for (const auto &res : reservations)
@@ -422,7 +440,7 @@ bool ReservationSystem::hasUserReservationWithStatus(const string &status, const
     return false;
 }
 
-// Implementation of displayByStatus method
+// Displays all reservations with a specific status
 void ReservationSystem::displayByStatus(const string &status)
 {
     cout << "ALL " << toUpperCase(status) << " RESERVATIONS" << endl;
@@ -440,6 +458,7 @@ void ReservationSystem::displayByStatus(const string &status)
     }
 }
 
+// Displays all reservations for a specific user
 void ReservationSystem::displayUserReservations(const string &username)
 {
     cout << "User: " << username << endl;
@@ -456,7 +475,7 @@ void ReservationSystem::displayUserReservations(const string &username)
     }
 }
 
-// Implementation of displayByStatus method
+// Displays all reservations for a specific user with a specific status
 void ReservationSystem::displayUserReservationByStatus(const string &status, const string &username)
 {
     cout << "User: " << username << endl;
@@ -475,6 +494,7 @@ void ReservationSystem::displayUserReservationByStatus(const string &status, con
     }
 }
 
+// Retrieves the status of a reservation by ID
 string ReservationSystem::getStatus(const string &id) const
 {
     for (const auto &res : reservations)
@@ -487,7 +507,7 @@ string ReservationSystem::getStatus(const string &id) const
     return "";
 }
 
-// Implementation of displayAll method
+// Displays all reservations in the system
 void ReservationSystem::displayAll()
 {
     cout << "\n================================================== ALL RESERVATIONS ==================================================\n";
@@ -501,7 +521,7 @@ void ReservationSystem::displayAll()
     }
 }
 
-// approveReservation method - pending to approved
+// Enables the admin to approve a reservation
 void ReservationSystem::approveReservation(const string &id)
 {
     for (auto &res : reservations)
@@ -516,6 +536,7 @@ void ReservationSystem::approveReservation(const string &id)
     cout << "Reservation either not found or not pending.\n";
 }
 
+// Enables the admin to reject a reservation
 void ReservationSystem::rejectReservation(const string &id)
 {
     for (auto &res : reservations)
@@ -529,6 +550,7 @@ void ReservationSystem::rejectReservation(const string &id)
     cout << "Reservation either not found or not pending.\n";
 }
 
+// Enables the user to settle payment for a reservation
 void ReservationSystem::settlePayment(const string &id, const string &paymentType)
 {
     for (auto &res : reservations)
@@ -564,6 +586,7 @@ void ReservationSystem::settlePayment(const string &id, const string &paymentTyp
     cout << "Reservation must be approved before settling payment.\n";
 }
 
+// Enables the user to cancel a reservation
 void ReservationSystem::cancelReservation(const string &id)
 {
     for (auto it = reservations.begin(); it != reservations.end(); ++it)
@@ -576,6 +599,7 @@ void ReservationSystem::cancelReservation(const string &id)
     }
 }
 
+// Checks if a reservation with a specific ID exists
 bool ReservationSystem::exists(const string &id)
 {
     for (const auto &res : reservations)
@@ -586,6 +610,7 @@ bool ReservationSystem::exists(const string &id)
     return false;
 }
 
+// Checks if a reservation with a specific ID exists for a specific user
 bool ReservationSystem::existsForUser(const string &id, const string &username) const
 {
     for (const auto &res : reservations)
@@ -596,11 +621,13 @@ bool ReservationSystem::existsForUser(const string &id, const string &username) 
     return false;
 }
 
+// Checks if the reservation system is empty
 bool ReservationSystem::isEmpty() const
 {
     return reservations.empty();
 }
 
+// Checks if a user has any reservations
 bool ReservationSystem::isUserReservationEmpty(const string &username) const
 {
     for (const auto &res : reservations)
@@ -613,6 +640,7 @@ bool ReservationSystem::isUserReservationEmpty(const string &username) const
     return true;
 }
 
+// Class to represent the payment method strategy
 class PaymentMethod
 {
 public:
@@ -620,6 +648,7 @@ public:
     virtual ~PaymentMethod() {}
 };
 
+// Derived classes for different payment methods
 class Maya : public PaymentMethod
 {
 public:
@@ -647,6 +676,7 @@ public:
     }
 };
 
+// Singleton class for payment processing
 class Payment
 {
 private:
@@ -680,8 +710,9 @@ public:
     }
 };
 
-Payment *Payment::instance = nullptr;
+Payment *Payment::instance = nullptr; // Singleton instance
 
+// Function to get a valid payment method input
 int getValidPaymentMethodInput()
 {
     string input;
@@ -702,7 +733,7 @@ int getValidPaymentMethodInput()
     }
 }
 
-ReservationSystem rs;
+ReservationSystem rs; // Global instance of ReservationSystem
 
 // Customer Menu
 void customerMenu(const string &username)
@@ -719,7 +750,7 @@ void customerMenu(const string &username)
 
         switch (choice)
         {
-        // make reservation
+        // Make reservation
         case 1:
         {
             string name, phoneNo, date, time;
@@ -798,7 +829,7 @@ void customerMenu(const string &username)
             break;
         }
 
-        // edit reservation
+        // Edit reservation
         case 2:
         {
             if (rs.isUserReservationEmpty(username))
@@ -862,7 +893,7 @@ void customerMenu(const string &username)
             break;
         }
 
-        // view reservation
+        // View reservation
         case 3:
         {
             if (rs.isUserReservationEmpty(username))
@@ -874,7 +905,7 @@ void customerMenu(const string &username)
             break;
         }
 
-        // cancel reservation
+        // Cancel reservation
         case 4:
         {
             if (rs.isUserReservationEmpty(username))
@@ -953,7 +984,7 @@ void customerMenu(const string &username)
             break;
         }
 
-        // settle payment
+        // Settle payment
         case 5:
         {
             if (rs.isUserReservationEmpty(username))
@@ -1064,6 +1095,7 @@ void customerMenu(const string &username)
     }
 }
 
+// Admin menu
 void adminMenu()
 {
     int choice;
@@ -1078,7 +1110,7 @@ void adminMenu()
 
         switch (choice)
         {
-            // view reservations
+            // View reservations
         case 1:
         {
             if (rs.isEmpty())
@@ -1090,7 +1122,7 @@ void adminMenu()
             break;
         }
 
-        // view pending & approve reservations
+        // View pending & approve reservations
         case 2:
         {
             if (rs.isEmpty())
@@ -1184,7 +1216,7 @@ void adminMenu()
             break;
         }
 
-        // back to main menu
+        // Back to main menu
         case 3:
         {
             cout << "Logging out...\n\n";
@@ -1197,10 +1229,11 @@ void adminMenu()
 
 int main()
 {
-    rs.initializeSampleReservations();
-    bool condition = true;
+    rs.initializeSampleReservations(); // Initialize sample reservations
+    bool condition = true; 
     int choice;
 
+    // Main menu
     while (condition)
     {
         int choice;
@@ -1211,6 +1244,7 @@ int main()
         choice = getValidInt("Enter your choice: ", 1, 3);
         cout << "\n";
 
+        
         switch (choice)
         {
         case 1:
