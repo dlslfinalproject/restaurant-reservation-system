@@ -1,3 +1,9 @@
+// Author: Zurinee Irish M. Belo, Katherine Anne S. Liwanag, Jane Allyson L. Paray, and Jhenelle K.Alonzo
+
+/* This program is a restaurant reservation system that allows users (customers and admin) to make reservations and approve reservations. The program applied the four pillars of OOP: 
+Encapsulation, Inheritance, Polymorphism, and Abstraction. It also implements the Singleton and Strategy Pattern for the Payment class to ensure that only one 
+instance of the payment method is created and used throughout the program. In generating reports, file handling is used for storing and retrieving settled reservation data. */
+
 #include <iostream>
 #include <vector> // Used for dynamic array
 #include <string>
