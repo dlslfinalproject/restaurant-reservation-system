@@ -243,7 +243,7 @@ public:
     void displayUserReservationByStatus(const string &status, const string &username);
     string getStatus(const string &id) const;
     void approveReservation(const string &id);
-    void settlePayment(const string &id);
+    void settlePayment(const string &id, const string &paymentType);
     bool exists(const string &id);
     bool existsForUser(const string &id, const string &username) const;
     bool isEmpty() const;
@@ -258,10 +258,10 @@ void ReservationSystem::addReservationSilent(const string &username, const strin
 
 void ReservationSystem::initializeSampleReservations()
 {
-    addReservationSilent("zurineeirish@gmail.com", "Zurinee Belo", "09868366562", 80, "09-30-2025", "09:00 PM");
-    addReservationSilent("jhenelle@gmail.com", "Jhenelle Alonzo", "09926639727", 50, "02-26-2025", "09:00 PM");
-    addReservationSilent("janeallyson@gmail.com", "Jane Paray", "09171234567", 20, "06-15-2025", "07:00 PM");
-    addReservationSilent("katherineanne@gmail.com", "Katherine Liwanag", "09171234567", 20, "06-15-2025", "07:00 PM");
+    addReservationSilent("zurineeirish@gmail.com", "Zurinee Belo", "09868366562", 6, "09-30-2025", "09:00 PM");
+    addReservationSilent("jhenelle@gmail.com", "Jhenelle Alonzo", "09926639727", 5, "02-26-2025", "09:00 PM");
+    addReservationSilent("janeallyson@gmail.com", "Jane Paray", "09171234567", 3, "06-15-2025", "07:00 PM");
+    addReservationSilent("katherineanne@gmail.com", "Katherine Liwanag", "09171234567", 1, "06-15-2025", "07:00 PM");
 }
 
 // Implementation of generateID method
@@ -523,7 +523,7 @@ void ReservationSystem::rejectReservation(const string &id)
     cout << "Reservation either not found or not pending.\n";
 }
 
-void ReservationSystem::settlePayment(const string &id)
+void ReservationSystem::settlePayment(const string &id, const string &paymentType)
 {
     for (auto &res : reservations)
     {
@@ -546,6 +546,7 @@ void ReservationSystem::settlePayment(const string &id)
                         << " | Date: " << res.getDate()
                         << " | Time: " << res.getTime()
                         << " | Status: Settled"
+                        << " | Payment Method: " << paymentType
                         << " | Settled At: " << dt << endl;
                 logFile.close();
             }
@@ -912,7 +913,7 @@ void customerMenu(const string &username)
                 break;
             }
 
-            if (rs.hasStatus(STATUS[2]) || rs.hasStatus(STATUS[3]))
+             if (rs.getStatus(id) == STATUS[2] || rs.getStatus(id) == STATUS[3]) // Check if the status is "Pending"
             {
                 cout << "Settled or Rejected Reservation cannot be cancelled.\n";
                 break;
@@ -992,7 +993,6 @@ void customerMenu(const string &username)
                 confirm = toUpperCase(confirm);
                 if (confirm == "Y")
                 {
-                    rs.settlePayment(id);
                     int method = getValidPaymentMethodInput();
                     Payment *payment = Payment::getInstance();
 
@@ -1027,6 +1027,7 @@ void customerMenu(const string &username)
 
                         cout << "Payment for reservation ID " << id << " has been settled successfully!\n";
                     }
+                    rs.settlePayment(id, paymentType);
                 }
 
                 else if (confirm == "N")
