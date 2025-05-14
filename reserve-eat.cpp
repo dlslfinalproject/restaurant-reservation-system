@@ -1,20 +1,21 @@
 // Author: Zurinee Irish M. Belo, Katherine Anne S. Liwanag, Jane Allyson L. Paray, and Jhenelle K.Alonzo
 
-/* This program is a restaurant reservation system that allows users (customers and admin) to make reservations and approve reservations. The program applied the four pillars of OOP: 
-Encapsulation, Inheritance, Polymorphism, and Abstraction. It also implements the Singleton and Strategy Pattern for the Payment class to ensure that only one 
+/* This program is a restaurant reservation system that allows users (customers and admin) to make reservations and approve reservations. The program applied the four pillars of OOP:
+Encapsulation, Inheritance, Polymorphism, and Abstraction. It also implements the Singleton and Strategy Pattern for the Payment class to ensure that only one
 instance of the payment method is created and used throughout the program. In generating reports, file handling is used for storing and retrieving settled reservation data. */
 
-#include <iostream> // Used for input/output operations
-#include <vector> // Used for dynamic array
-#include <string> // Used for string manipulation
+#include <iostream>  // Used for input/output operations
+#include <vector>    // Used for dynamic array
+#include <string>    // Used for string manipulation
 #include <stdexcept> // Used for exception handling
-#include <iomanip> // Used for formatting output
+#include <iomanip>   // Used for formatting output
 #include <algorithm> // Used for various algorithmic operations
-#include <fstream> // Used for file operations
+#include <fstream>   // Used for file operations
+#include <regex>
 using namespace std; // Standard namespace
 
 const string STATUS[] = {"Pending", "Approved", "Settled", "Rejected"}; // 0, 1, 2, 3
-const int MAX_RESERVATIONS = 100; // Maximum number of reservations
+const int MAX_RESERVATIONS = 100;                                       // Maximum number of reservations
 
 // Struct to hold user information
 struct User
@@ -24,7 +25,6 @@ struct User
 };
 
 vector<User> users; // Vector to hold user data
-
 
 bool userExists(const string &username);
 bool authenticateUser(const string &username, const string &password);
@@ -654,7 +654,26 @@ class Maya : public PaymentMethod
 public:
     void paymentMethod() override
     {
-        cout << "Maya";
+        string accountNo, authCode;
+        regex accRegex("^09\\d{9}$");
+        regex authRegex("^\\d{6}$");
+        cout << "Enter Maya Account Number: ";
+        getline(cin, accountNo);
+        while (!regex_match(accountNo, accRegex))
+        {
+            cout << "Invalid account number! Please try again: ";
+            getline(cin, accountNo);
+        }
+
+        cout << "Enter Maya Authentication Code (6 digits): ";
+        getline(cin, authCode);
+        while (!regex_match(authCode, authRegex))
+        {
+            cout << "Invalid authentication code! Please try again: ";
+            getline(cin, authCode);
+        }
+
+        cout << "Payment successful via Maya.\n";
     }
 };
 
@@ -663,7 +682,26 @@ class GCash : public PaymentMethod
 public:
     void paymentMethod() override
     {
-        cout << "GCash";
+        string accountNo, authCode;
+        regex accRegex("^09\\d{9}$");
+        regex authRegex("^\\d{6}$");
+        cout << "Enter GCash Account Number: ";
+        getline(cin, accountNo);
+        while (!regex_match(accountNo, accRegex))
+        {
+            cout << "Invalid account number! Please try again: ";
+            getline(cin, accountNo);
+        }
+
+        cout << "Enter GCash Authentication Code (6 digits): ";
+        getline(cin, authCode);
+        while (!regex_match(authCode, authRegex))
+        {
+            cout << "Invalid authentication code! Please try again: ";
+            getline(cin, authCode);
+        }
+
+        cout << "Payment successful via GCash.\n";
     }
 };
 
@@ -672,7 +710,40 @@ class Card : public PaymentMethod
 public:
     void paymentMethod() override
     {
-        cout << "Credit / Debit Card";
+        string cardNo, name, expiry, cvv;
+        regex cardRegex("^\\d{16}$");
+        regex expiryRegex("^(0[1-9]|1[0-2])/\\d{4}$");
+        regex cvvRegex("^\\d{3}$");
+
+        cout << "Enter Card Number: ";
+        getline(cin, cardNo);
+        while (!regex_match(cardNo, cardRegex)) {
+            cout << "Invalid card number! Please try again: ";
+            getline(cin, cardNo);
+        }
+
+        cout << "Enter Cardholder's Name: ";
+        getline(cin, name);
+        while (name.empty()) {
+            cout << "Name cannot be empty! Please try again: ";
+            getline(cin, name);
+        }
+
+        cout << "Enter Expiry Date (MM/YYYY): ";
+        getline(cin, expiry);
+        while (!regex_match(expiry, expiryRegex)) {
+            cout << "Invalid expiry date! Please try again: ";
+            getline(cin, expiry);
+        }
+
+        cout << "Enter CVV: ";
+        getline(cin, cvv);
+        while (!regex_match(cvv, cvvRegex)) {
+            cout << "Invalid CVV! Please try again: ";
+            getline(cin, cvv);
+        }
+
+        cout << "Payment successful via Credit/Debit Card.\n";
     }
 };
 
@@ -950,7 +1021,7 @@ void customerMenu(const string &username)
                 break;
             }
 
-             if (rs.getStatus(id) == STATUS[2] || rs.getStatus(id) == STATUS[3]) // Check if the status is "Pending"
+            if (rs.getStatus(id) == STATUS[2] || rs.getStatus(id) == STATUS[3]) // Check if the status is "Pending"
             {
                 cout << "Settled or Rejected Reservation cannot be cancelled.\n";
                 break;
@@ -1045,7 +1116,7 @@ void customerMenu(const string &username)
                         payment->setStrategy(new Card());
                         break;
                     }
-                    cout << "Payment method: ";
+                    cout << "Payment Processing...\n";
                     payment->executePayment();
                     cout << "\n";
 
@@ -1230,7 +1301,7 @@ void adminMenu()
 int main()
 {
     rs.initializeSampleReservations(); // Initialize sample reservations
-    bool condition = true; 
+    bool condition = true;
     int choice;
 
     // Main menu
@@ -1244,7 +1315,6 @@ int main()
         choice = getValidInt("Enter your choice: ", 1, 3);
         cout << "\n";
 
-        
         switch (choice)
         {
         case 1:
