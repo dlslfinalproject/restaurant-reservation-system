@@ -657,7 +657,7 @@ public:
         string accountNo, authCode;
         regex accRegex("^09\\d{9}$");
         regex authRegex("^\\d{6}$");
-        cout << "Enter Maya Account Number: ";
+        cout << "Enter Maya Account Number (11 digits): ";
         getline(cin, accountNo);
         while (!regex_match(accountNo, accRegex))
         {
@@ -685,7 +685,7 @@ public:
         string accountNo, authCode;
         regex accRegex("^09\\d{9}$");
         regex authRegex("^\\d{6}$");
-        cout << "Enter GCash Account Number: ";
+        cout << "Enter GCash Account Number (11 digits): ";
         getline(cin, accountNo);
         while (!regex_match(accountNo, accRegex))
         {
@@ -715,7 +715,7 @@ public:
         regex expiryRegex("^(0[1-9]|1[0-2])/\\d{4}$");
         regex cvvRegex("^\\d{3}$");
 
-        cout << "Enter Card Number: ";
+        cout << "Enter Card Number (16 digits): ";
         getline(cin, cardNo);
         while (!regex_match(cardNo, cardRegex)) {
             cout << "Invalid card number! Please try again: ";
@@ -736,7 +736,7 @@ public:
             getline(cin, expiry);
         }
 
-        cout << "Enter CVV: ";
+        cout << "Enter CVV (3 digits): ";
         getline(cin, cvv);
         while (!regex_match(cvv, cvvRegex)) {
             cout << "Invalid CVV! Please try again: ";
