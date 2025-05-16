@@ -11,7 +11,7 @@ instance of the payment method is created and used throughout the program. In ge
 #include <iomanip>   // Used for formatting output
 #include <algorithm> // Used for various algorithmic operations
 #include <fstream>   // Used for file operations
-#include <regex>
+#include <regex>     // Used for regular expressions and pattern matching within strings
 using namespace std; // Standard namespace
 
 const string STATUS[] = {"Pending", "Approved", "Settled", "Rejected"}; // 0, 1, 2, 3
@@ -26,11 +26,11 @@ struct User
 
 vector<User> users; // Vector to hold user data
 
-bool userExists(const string &username);
-bool authenticateUser(const string &username, const string &password);
-void registerUser(const string &username, const string &password);
-void customerMenu(const string &username);
-void adminMenu();
+bool userExists(const string &username); // Function to check if a user exists
+bool authenticateUser(const string &username, const string &password); // Function to authenticate a user
+void registerUser(const string &username, const string &password); // Function to register a new user
+void customerMenu(const string &username); // Function to display customer menu
+void adminMenu(); // Function to display admin menu
 
 // Function to check if a user exists in the system
 bool userExists(const string &username)
@@ -677,6 +677,7 @@ public:
     }
 };
 
+// Derived class for GCash payment method
 class GCash : public PaymentMethod
 {
 public:
@@ -705,6 +706,7 @@ public:
     }
 };
 
+// Derived class for Card payment method
 class Card : public PaymentMethod
 {
 public:
