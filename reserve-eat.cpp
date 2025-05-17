@@ -11,6 +11,7 @@ instance of the payment method is created and used throughout the program. In ge
 #include <iomanip>   // Used for formatting output
 #include <algorithm> // Used for various algorithmic operations
 #include <fstream>   // Used for file operations
+#include <ctime>     // Used for time-related functions
 #include <regex>     // Used for regular expressions and pattern matching within strings
 using namespace std; // Standard namespace
 
@@ -26,11 +27,11 @@ struct User
 
 vector<User> users; // Vector to hold user data
 
-bool userExists(const string &username); // Function to check if a user exists
+bool userExists(const string &username);                               // Function to check if a user exists
 bool authenticateUser(const string &username, const string &password); // Function to authenticate a user
-void registerUser(const string &username, const string &password); // Function to register a new user
-void customerMenu(const string &username); // Function to display customer menu
-void adminMenu(); // Function to display admin menu
+void registerUser(const string &username, const string &password);     // Function to register a new user
+void customerMenu(const string &username);                             // Function to display customer menu
+void adminMenu();                                                      // Function to display admin menu
 
 // Function to check if a user exists in the system
 bool userExists(const string &username)
@@ -149,6 +150,15 @@ bool isValidDate(const string &date)
     int month = stoi(mm);
     int day = stoi(dd);
     int year = stoi(yyyy);
+
+    // Get current year
+    time_t t = time(nullptr);
+    tm *now = localtime(&t);
+    int currentYear = now->tm_year + 1900;
+
+    // Disallow years before the current year
+    if (year < currentYear)
+        return false;
 
     if (month < 1 || month > 12)
         return false;
@@ -567,7 +577,7 @@ void ReservationSystem::settlePayment(const string &id, const string &paymentTyp
                 string dt = ctime(&now);
                 dt.pop_back(); // remove newline
 
-                logFile << "[SETTLED] ID: " << res.getID()
+                logFile << "RESERVATION ID: " << res.getID()
                         << " | Name: " << res.getName()
                         << " | Phone: " << res.getPhoneNo()
                         << " | Guests: " << res.getGuestCount()
@@ -719,28 +729,32 @@ public:
 
         cout << "Enter Card Number (16 digits): ";
         getline(cin, cardNo);
-        while (!regex_match(cardNo, cardRegex)) {
+        while (!regex_match(cardNo, cardRegex))
+        {
             cout << "Invalid card number! Please try again: ";
             getline(cin, cardNo);
         }
 
         cout << "Enter Cardholder's Name: ";
         getline(cin, name);
-        while (name.empty()) {
+        while (name.empty())
+        {
             cout << "Name cannot be empty! Please try again: ";
             getline(cin, name);
         }
 
         cout << "Enter Expiry Date (MM/YYYY): ";
         getline(cin, expiry);
-        while (!regex_match(expiry, expiryRegex)) {
+        while (!regex_match(expiry, expiryRegex))
+        {
             cout << "Invalid expiry date! Please try again: ";
             getline(cin, expiry);
         }
 
         cout << "Enter CVV (3 digits): ";
         getline(cin, cvv);
-        while (!regex_match(cvv, cvvRegex)) {
+        while (!regex_match(cvv, cvvRegex))
+        {
             cout << "Invalid CVV! Please try again: ";
             getline(cin, cvv);
         }
