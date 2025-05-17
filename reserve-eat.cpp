@@ -209,16 +209,41 @@ bool isValidTime(const string &time)
     return true;
 }
 
+string addTwoHours(const string &startTime)
+{
+    int hour = stoi(startTime.substr(0, 2));
+    int minute = stoi(startTime.substr(3, 2));
+    string meridian = startTime.substr(6, 2); // "AM" or "PM"
+
+    hour += 2;
+    if (hour > 12)
+    {
+        hour -= 12;
+        meridian = (meridian == "AM") ? "PM" : "AM";
+    }
+    else if (hour == 12)
+    {
+        meridian = (meridian == "AM") ? "PM" : "AM";
+    }
+
+    // Format back to HH:MM AM/PM
+    stringstream ss;
+    ss << setw(2) << setfill('0') << hour << ":"
+       << setw(2) << setfill('0') << minute << " "
+       << meridian;
+    return ss.str();
+}
+
 // Class to represent a reservation
 class Reservation
 {
 private:
-    string id, username, name, phoneNo, date, time, status;
+    string id, username, name, phoneNo, date, startTime, endTime, status;
     int guestCount;
 
 public:
     Reservation() {}
-    Reservation(string id, string username, string name, string phoneNo, int guestCount, string date, string time, string status) : id(id), username(username), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), time(time), status(status) {}
+    Reservation(string id, string username, string name, string phoneNo, int guestCount, string date, string startTime, string endTime, string status) : id(id), username(username), name(name), phoneNo(phoneNo), guestCount(guestCount), date(date), startTime(startTime), endTime(endTime), status(status) {}
 
     string getID() const { return id; }
     string getUsername() const { return username; }
@@ -227,21 +252,23 @@ public:
     string getStatus() const { return status; }
     int getGuestCount() const { return guestCount; }
     string getDate() const { return date; }
-    string getTime() const { return time; }
+    string getStartTime() const { return startTime; }
+    string getEndTime() const { return endTime; }
     void setStatus(const string &newStatus) { status = newStatus; }
 
-    void editReservation(int gCount, string dt, string tm)
+    void editReservation(int gCount, string dt, string stm, string etm)
     {
         guestCount = gCount;
         date = dt;
-        time = tm;
+        startTime = stm;
+        endTime = etm;
     }
 
     void displayReservations() const
     {
         cout << left << setw(20) << id << setw(30) << name << setw(20) << phoneNo
-             << setw(10) << guestCount << setw(15) << date << setw(15) << time
-             << setw(15) << status << endl;
+             << setw(10) << guestCount << setw(15) << date << setw(15) << startTime
+             << setw(15) << endTime << setw(15) << status << endl;
         cout << "======================================================================================================================\n";
     }
 };
@@ -279,10 +306,11 @@ public:
 };
 
 // Add a reservation without user interaction
-void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
+void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &startTime)
 {
     string id = generateID();
-    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]);
+    string endTime = addTwoHours(startTime); // Assuming you have this function
+    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, startTime, endTime, STATUS[0]);
 }
 
 // Initialize sample reservations
@@ -333,10 +361,11 @@ void ReservationSystem::logToFile(const string &logEntry)
 }
 
 // Adds a reservation to the system
-void ReservationSystem::addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &time)
+void ReservationSystem::addReservation(const string &username, const string &name, const string &phoneNo, int guestCount, const string &date, const string &startTime)
 {
+    string endTime = addTwoHours(startTime);
     string id = generateID();
-    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, time, STATUS[0]); // STATUS[0] = "Pending"
+    reservations.emplace_back(id, username, name, phoneNo, guestCount, date, startTime, endTime, STATUS[0]);
     cout << "Reservation made successfully! Reservation ID: " << id << endl;
 }
 
@@ -354,7 +383,7 @@ void ReservationSystem::editReservation(const string &id, const string &username
                 return;
             }
 
-            string newDate, newTime, newGC;
+            string newDate, newStartTime, newGC;
             int newGuestCount;
             bool validGC = false;
 
@@ -403,19 +432,20 @@ void ReservationSystem::editReservation(const string &id, const string &username
             do
             {
                 cout << "Enter new time (HH:MM AM/PM): ";
-                getline(cin, newTime);
-                if (newTime.empty())
+                getline(cin, newStartTime);
+                if (newStartTime.empty())
                 {
                     cout << "Time cannot be empty! Please enter a valid time.\n";
                 }
-                else if (!isValidTime(newTime))
+                else if (!isValidTime(newStartTime))
                 {
                     cout << "Invalid time format or value! Please follow HH:MM AM/PM.\n";
-                    newTime.clear(); // Clear invalid input to retry
+                    newStartTime.clear(); // Clear invalid input to retry
                 }
-            } while (newTime.empty() || !isValidTime(newTime));
+            } while (newStartTime.empty() || !isValidTime(newStartTime));
 
-            res.editReservation(newGuestCount, newDate, newTime);
+            string newEndTime = addTwoHours(newStartTime);
+            res.editReservation(newGuestCount, newDate, newStartTime, newEndTime);
             cout << "Reservation updated successfully!\n";
             return;
         }
@@ -456,8 +486,8 @@ void ReservationSystem::displayByStatus(const string &status)
     cout << "ALL " << toUpperCase(status) << " RESERVATIONS" << endl;
     cout << "======================================================================================================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
-         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
-         << setw(15) << "Status" << endl;
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Start Time"
+         << setw(15) << "End Time" << setw(15) << "Status" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------------\n";
     for (const auto &res : reservations)
     {
@@ -474,8 +504,8 @@ void ReservationSystem::displayUserReservations(const string &username)
     cout << "User: " << username << endl;
     cout << "==================================================== RESERVATIONS ====================================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
-         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
-         << setw(15) << "Status" << endl;
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Start Time"
+         << setw(15) << "End Time" << setw(15) << "Status" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------------\n";
 
     for (const auto &res : reservations)
@@ -492,8 +522,8 @@ void ReservationSystem::displayUserReservationByStatus(const string &status, con
     cout << "ALL " << toUpperCase(status) << " RESERVATIONS" << endl;
     cout << "======================================================================================================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
-         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
-         << setw(15) << "Status" << endl;
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Start Time"
+         << setw(15) << "End Time" << setw(15) << "Status" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------------\n";
     for (const auto &res : reservations)
     {
@@ -522,8 +552,8 @@ void ReservationSystem::displayAll()
 {
     cout << "\n================================================== ALL RESERVATIONS ==================================================\n";
     cout << left << setw(20) << "Reservation ID" << setw(30) << "Name" << setw(20) << "Phone Number"
-         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Time"
-         << setw(15) << "Status" << endl;
+         << setw(10) << "Guests" << setw(15) << "Date" << setw(15) << "Start Time"
+         << setw(15) << "End Time" << setw(15) << "Status" << endl;
     cout << "----------------------------------------------------------------------------------------------------------------------\n";
     for (const auto &res : reservations)
     {
@@ -538,8 +568,8 @@ void ReservationSystem::approveReservation(const string &id)
     {
         if (res.getID() == id && res.getStatus() == STATUS[0]) // STATUS[0] = "Pending"
         {
-            res.editReservation(res.getGuestCount(), res.getDate(), res.getTime()); // optional update
-            res.setStatus(STATUS[1]);                                               // STATUS[1] = "Approved"
+            res.editReservation(res.getGuestCount(), res.getDate(), res.getStartTime(), res.getEndTime()); // optional update
+            res.setStatus(STATUS[1]);                                                                      // STATUS[1] = "Approved"
             return;
         }
     }
@@ -582,7 +612,8 @@ void ReservationSystem::settlePayment(const string &id, const string &paymentTyp
                         << " | Phone: " << res.getPhoneNo()
                         << " | Guests: " << res.getGuestCount()
                         << " | Date: " << res.getDate()
-                        << " | Time: " << res.getTime()
+                        << " | Start Time: " << res.getStartTime()
+                        << " | End Time: " << res.getEndTime()
                         << " | Status: Settled"
                         << " | Payment Method: " << paymentType
                         << " | Settled At: " << dt << endl;
@@ -840,7 +871,7 @@ void customerMenu(const string &username)
         // Make reservation
         case 1:
         {
-            string name, phoneNo, date, time;
+            string name, phoneNo, date, startTime;
             bool isValidPhoneNo = false, isValidGC = false;
             int guestCount;
 
@@ -897,21 +928,21 @@ void customerMenu(const string &username)
 
             do
             {
-                cout << "Time (HH:MM AM/PM): ";
-                getline(cin, time);
-                if (time.empty())
+                cout << "Start Time (HH:MM AM/PM): ";
+                getline(cin, startTime);
+                if (startTime.empty())
                 {
                     cout << "Time cannot be empty! Please enter a valid time.\n";
                 }
-                else if (!isValidTime(time))
+                else if (!isValidTime(startTime))
                 {
                     cout << "Invalid time format or value! Please follow HH:MM AM/PM.\n";
-                    time.clear(); // Clear invalid input to retry
+                    startTime.clear(); // Clear invalid input to retry
                 }
-            } while (time.empty() || !isValidTime(time));
+            } while (startTime.empty() || !isValidTime(startTime));
 
             cout << "==============================================================\n";
-            rs.addReservation(username, name, phoneNo, guestCount, date, time);
+            rs.addReservation(username, name, phoneNo, guestCount, date, startTime);
 
             break;
         }
