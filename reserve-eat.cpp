@@ -31,7 +31,7 @@ bool userExists(const string &username);                               // Functi
 bool authenticateUser(const string &username, const string &password); // Function to authenticate a user
 void registerUser(const string &username, const string &password);     // Function to register a new user
 void customerMenu(const string &username);                             // Function to display customer menu
-void adminMenu();                                                      // Function to display admin menu
+void adminMenu();    
 
 // Function to check if a user exists in the system
 bool userExists(const string &username)
@@ -317,10 +317,22 @@ void ReservationSystem::addReservationSilent(const string &username, const strin
 // Initialize sample reservations
 void ReservationSystem::initializeSampleReservations()
 {
-    addReservationSilent("zurineeirish@gmail.com", "Zurinee Belo", "09868366562", 2, "09-30-2025", "09:00 PM");
-    addReservationSilent("jhenelle@gmail.com", "Jhenelle Alonzo", "09926639727", 1, "05-26-2025", "09:00 PM");
-    addReservationSilent("janeallyson@gmail.com", "Jane Paray", "09171234567", 1, "06-15-2025", "07:00 PM");
-    addReservationSilent("katherineanne@gmail.com", "Katherine Liwanag", "09171234567", 1, "06-15-2025", "07:00 PM");
+    if (!userExists("ZURINEEIRISH@GMAIL.COM"))
+        registerUser("ZURINEEIRISH@GMAIL.COM", "zurinee123");
+    
+    if (!userExists("JHENELLE@GMAIL.COM"))
+        registerUser("JHENELLE@GMAIL.COM", "jhenelle123");
+
+    if (!userExists("JANEALLYSON@GMAIL.COM"))
+        registerUser("JANEALLYSON@GMAIL.COM", "jane123");
+
+    if (!userExists("KATHERINEANNE@GMAIL.COM"))
+        registerUser("KATHERINEANNE@GMAIL.COM", "katherine123");
+
+    addReservationSilent("ZURINEEIRISH@GMAIL.COM", "Zurinee Belo", "09868366562", 2, "09-30-2025", "09:00 PM");
+    addReservationSilent("JHENELLE@GMAIL.COM", "Jhenelle Alonzo", "09926639727", 1, "05-26-2025", "09:00 PM");
+    addReservationSilent("JANEALLYSON@GMAIL.COM", "Jane Paray", "09171234567", 1, "06-15-2025", "07:00 PM");
+    addReservationSilent("ATHERINEANNE@GMAIL.COM", "Katherine Liwanag", "09171234567", 1, "06-15-2025", "07:00 PM");
 }
 
 // Implementation of generateID method
