@@ -31,7 +31,7 @@ bool userExists(const string &username);                               // Functi
 bool authenticateUser(const string &username, const string &password); // Function to authenticate a user
 void registerUser(const string &username, const string &password);     // Function to register a new user
 void customerMenu(const string &username);                             // Function to display customer menu
-void adminMenu();    
+void adminMenu();
 
 // Function to check if a user exists in the system
 bool userExists(const string &username)
@@ -283,9 +283,9 @@ private:
 public:
     //  Reservation System methods
     string generateID();
-    void addReservationSilent(const string &username, const string &name, const string &phoneNo, int tablesReserved, const string &date, const string &time);
-    void initializeSampleReservations();
     void logToFile(const string &logEntry);
+    void loadReservationsFromFile(const string &filename = "reservations.txt");
+    void saveReservationsToFile(const string &filename = "reservations.txt") const;
     void addReservation(const string &username, const string &name, const string &phoneNo, int tablesReserved, const string &date, const string &time);
     int getAvailableTables(const string &date, const string &startTime, const string &endTime) const;
     void editReservation(const string &id, const string &username);
@@ -306,33 +306,96 @@ public:
     bool isUserReservationEmpty(const string &username) const;
 };
 
-// Add a reservation without user interaction
-void ReservationSystem::addReservationSilent(const string &username, const string &name, const string &phoneNo, int tablesReserved, const string &date, const string &startTime)
+void saveUsersToFile(const string &filename = "users.txt")
 {
-    string id = generateID();
-    string endTime = addTwoHours(startTime); // Assuming you have this function
-    reservations.emplace_back(id, username, name, phoneNo, tablesReserved, date, startTime, endTime, STATUS[0]);
+    ofstream file(filename);
+    if (!file)
+    {
+        cerr << "Error opening file for writing users.\n";
+        return;
+    }
+
+    for (const auto &user : users)
+    {
+        file << user.username << ',' << user.password << '\n';
+    }
+
+    file.close();
 }
 
-// Initialize sample reservations
-void ReservationSystem::initializeSampleReservations()
+void loadUsersFromFile(const string &filename = "users.txt")
 {
-    if (!userExists("ZURINEEIRISH@GMAIL.COM"))
-        registerUser("ZURINEEIRISH@GMAIL.COM", "zurinee123");
-    
-    if (!userExists("JHENELLE@GMAIL.COM"))
-        registerUser("JHENELLE@GMAIL.COM", "jhenelle123");
+    ifstream file(filename);
+    if (!file)
+    {
+        cerr << "No existing user data found.\n";
+        return;
+    }
 
-    if (!userExists("JANEALLYSON@GMAIL.COM"))
-        registerUser("JANEALLYSON@GMAIL.COM", "jane123");
+    users.clear(); // Optional: ensure no duplicates
+    string line;
+    while (getline(file, line))
+    {
+        stringstream ss(line);
+        string username, password;
+        if (getline(ss, username, ',') && getline(ss, password))
+        {
+            users.push_back({username, password});
+        }
+    }
 
-    if (!userExists("KATHERINEANNE@GMAIL.COM"))
-        registerUser("KATHERINEANNE@GMAIL.COM", "katherine123");
+    file.close();
+}
 
-    addReservationSilent("ZURINEEIRISH@GMAIL.COM", "Zurinee Belo", "09868366562", 2, "09-30-2025", "09:00 PM");
-    addReservationSilent("JHENELLE@GMAIL.COM", "Jhenelle Alonzo", "09926639727", 1, "05-26-2025", "09:00 PM");
-    addReservationSilent("JANEALLYSON@GMAIL.COM", "Jane Paray", "09171234567", 1, "06-15-2025", "07:00 PM");
-    addReservationSilent("ATHERINEANNE@GMAIL.COM", "Katherine Liwanag", "09171234567", 1, "06-15-2025", "07:00 PM");
+void ReservationSystem::saveReservationsToFile(const string &filename) const
+{
+    ofstream file(filename);
+    if (!file)
+    {
+        cerr << "Error opening reservation file for writing.\n";
+        return;
+    }
+
+    for (const auto &res : reservations)
+    {
+        file << res.getID() << ',' << res.getUsername() << ',' << res.getName() << ','
+             << res.getPhoneNo() << ',' << res.getTablesReserved() << ',' << res.getDate() << ','
+             << res.getStartTime() << ',' << res.getEndTime() << ',' << res.getStatus() << '\n';
+    }
+
+    file.close();
+}
+
+void ReservationSystem::loadReservationsFromFile(const string &filename)
+{
+    ifstream file(filename);
+    if (!file)
+    {
+        cerr << "No existing reservation data found.\n";
+        return;
+    }
+
+    reservations.clear();
+    string line;
+    while (getline(file, line))
+    {
+        stringstream ss(line);
+        string id, username, name, phoneNo, date, startTime, endTime, status;
+        int tablesReserved;
+
+        string tablesStr;
+        if (getline(ss, id, ',') && getline(ss, username, ',') &&
+            getline(ss, name, ',') && getline(ss, phoneNo, ',') &&
+            getline(ss, tablesStr, ',') && getline(ss, date, ',') &&
+            getline(ss, startTime, ',') && getline(ss, endTime, ',') &&
+            getline(ss, status))
+        {
+            tablesReserved = stoi(tablesStr);
+            reservations.emplace_back(id, username, name, phoneNo, tablesReserved, date, startTime, endTime, status);
+        }
+    }
+
+    file.close();
 }
 
 // Implementation of generateID method
@@ -1407,7 +1470,9 @@ void adminMenu()
 
 int main()
 {
-    rs.initializeSampleReservations(); // Initialize sample reservations
+    loadUsersFromFile();
+    rs.loadReservationsFromFile("reservations.txt");
+
     bool condition = true;
     int choice;
 
@@ -1492,5 +1557,7 @@ int main()
         }
         }
     }
+    saveUsersToFile();
+    rs.saveReservationsToFile("reservations.txt");
     return 0;
 }
