@@ -748,7 +748,7 @@ public:
         string accountNo, authCode;
         regex accRegex("^09\\d{9}$");
         regex authRegex("^\\d{6}$");
-        cout << "Enter Maya Account Number (11 digits): ";
+        cout << "Enter Maya Account Number (09XXXXXXXXX): ";
         getline(cin, accountNo);
         while (!regex_match(accountNo, accRegex))
         {
@@ -777,7 +777,7 @@ public:
         string accountNo, authCode;
         regex accRegex("^09\\d{9}$");
         regex authRegex("^\\d{6}$");
-        cout << "Enter GCash Account Number (11 digits): ";
+        cout << "Enter GCash Account Number (09XXXXXXXXX): ";
         getline(cin, accountNo);
         while (!regex_match(accountNo, accRegex))
         {
