@@ -177,18 +177,13 @@ bool isValidDate(const string &date)
 }
 
 // Function to check if a time is valid
-bool isValidTime(const string &time)
+bool isValidTime24(const string &time)
 {
-    if (time.length() != 8 || time[2] != ':' || time[5] != ' ')
+    if (time.length() != 5 || time[2] != ':')
         return false;
 
-    string upperTime = toUpperCase(time);
-
-    if ((upperTime[6] != 'A' && upperTime[6] != 'P') || upperTime[7] != 'M')
-        return false;
-
-    string hh = upperTime.substr(0, 2);
-    string mm = upperTime.substr(3, 2);
+    string hh = time.substr(0, 2);
+    string mm = time.substr(3, 2);
 
     int hour, minute;
     try
@@ -201,7 +196,7 @@ bool isValidTime(const string &time)
         return false;
     }
 
-    if (hour < 1 || hour > 12)
+    if (hour < 0 || hour > 23)
         return false;
     if (minute < 0 || minute > 59)
         return false;
@@ -209,28 +204,22 @@ bool isValidTime(const string &time)
     return true;
 }
 
-string addTwoHours(const string &startTime)
+// Function to add two hours to a 24-hour format time
+string addTwoHours24(const string &startTime)
 {
     int hour = stoi(startTime.substr(0, 2));
     int minute = stoi(startTime.substr(3, 2));
-    string meridian = startTime.substr(6, 2); // "AM" or "PM"
 
     hour += 2;
-    if (hour > 12)
+    if (hour >= 24)
     {
-        hour -= 12;
-        meridian = (meridian == "AM") ? "PM" : "AM";
-    }
-    else if (hour == 12)
-    {
-        meridian = (meridian == "AM") ? "PM" : "AM";
+        hour -= 24; // Wrap around to the next day if needed
     }
 
-    // Format back to HH:MM AM/PM
+    // Format back to HH:MM
     stringstream ss;
     ss << setw(2) << setfill('0') << hour << ":"
-       << setw(2) << setfill('0') << minute << " "
-       << meridian;
+       << setw(2) << setfill('0') << minute;
     return ss.str();
 }
 
@@ -439,7 +428,7 @@ void ReservationSystem::logToFile(const string &logEntry)
 // Adds a reservation to the system
 void ReservationSystem::addReservation(const string &username, const string &name, const string &phoneNo, int tablesReserved, const string &date, const string &startTime)
 {
-    string endTime = addTwoHours(startTime);
+    string endTime = addTwoHours24(startTime);
     string id = generateID();
     reservations.emplace_back(id, username, name, phoneNo, tablesReserved, date, startTime, endTime, STATUS[0]);
     cout << "Reservation made successfully! Reservation ID: " << id << endl;
@@ -503,22 +492,22 @@ void ReservationSystem::editReservation(const string &id, const string &username
 
             do
             {
-                cout << "Enter new time (HH:MM AM/PM): ";
+                cout << "Enter new time (HH:MM | 24 hour format): ";
                 getline(cin, newStartTime);
                 if (newStartTime.empty())
                 {
                     cout << "Time cannot be empty! Please enter a valid time.\n";
                 }
-                else if (!isValidTime(newStartTime))
+                else if (!isValidTime24(newStartTime))
                 {
-                    cout << "Invalid time format or value! Please follow HH:MM AM/PM.\n";
+                    cout << "Invalid time format or value! Please follow HH:MM | 24 hour format.\n";
                     newStartTime.clear(); // Clear invalid input to retry
                 }
-            } while (newStartTime.empty() || !isValidTime(newStartTime));
+            } while (newStartTime.empty() || !isValidTime24(newStartTime));
             if (newStartTime.empty())
                 newStartTime = res.getStartTime();
 
-            string newEndTime = addTwoHours(newStartTime);
+            string newEndTime = addTwoHours24(newStartTime);
             int availableTablesForNewTime = getAvailableTables(newDate, newStartTime, newEndTime) + res.getTablesReserved();
 
             do
@@ -1034,22 +1023,22 @@ void customerMenu(const string &username)
 
             do
             {
-                cout << "Start Time (HH:MM AM/PM): ";
+                cout << "Start Time (HH:MM | 24 hour format): ";
                 getline(cin, startTime);
                 if (startTime.empty())
                 {
                     cout << "Time cannot be empty! Please enter a valid time.\n";
                 }
-                else if (!isValidTime(startTime))
+                else if (!isValidTime24(startTime))
                 {
-                    cout << "Invalid time format or value! Please follow HH:MM AM/PM.\n";
+                    cout << "Invalid time format or value! Please follow HH:MM | 24 hour format.\n";
                     startTime.clear(); // Clear invalid input to retry
                 }
-            } while (startTime.empty() || !isValidTime(startTime));
+            } while (startTime.empty() || !isValidTime24(startTime));
 
-            int availableTables = rs.getAvailableTables(date, startTime, addTwoHours(startTime)); // We need to implement this
+            int availableTables = rs.getAvailableTables(date, startTime, addTwoHours24(startTime)); // We need to implement this
 
-            cout << "\nAvailable tables for " << date << " at " << startTime << " - " << addTwoHours(startTime) << ": " << availableTables << " / 10\n";
+            cout << "\nAvailable tables for " << date << " at " << startTime << " - " << addTwoHours24(startTime) << ": " << availableTables << " / 10\n";
 
             if (availableTables <= 0)
             {
