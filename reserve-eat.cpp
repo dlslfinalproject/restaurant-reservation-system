@@ -16,7 +16,6 @@ instance of the payment method is created and used throughout the program. In ge
 using namespace std; // Standard namespace
 
 const string STATUS[] = {"Pending", "Approved", "Settled", "Rejected"}; // 0, 1, 2, 3
-const int MAX_RESERVATIONS = 100;                                       // Maximum number of reservations
 
 // Struct to hold user information
 struct User
@@ -441,7 +440,7 @@ int ReservationSystem::getAvailableTables(const string &date, const string &star
 
     for (const auto &res : reservations)
     {
-        if (res.getDate() == date)
+        if (res.getDate() == date && (res.getStatus() == STATUS[0] || res.getStatus() == STATUS[1] || res.getStatus() == STATUS[2]))
         {
             // Check for time overlap
             if (!(endTime <= res.getStartTime() || startTime >= res.getEndTime()))
@@ -973,11 +972,42 @@ void customerMenu(const string &username)
         // Make reservation
         case 1:
         {
-            string name, phoneNo, date, startTime;
+            string name, phoneNo, date, startTime, confirm;
             bool isValidPhoneNo = false, isValidGC = false;
             int tablesNeeded;
 
             cout << "\n=========================== MAKE RESERVATION ===========================\n";
+            cout << "Welcome to our Restaurant! We are 24/7 open for reservations.\n";
+            cout << "As you make a reservation, we will need the following information:\n";
+            cout << "1. Name\n2. Contact Number\n3. Date (MM-DD-YYYY)\n4. Start Time (HH:MM | 24 hour format)\n5. Number of Tables to reserve\n";
+            cout << "Take note that a table has a maximum of 10 seats and there are maximum of 10 tables in our restaurant.\n";
+            cout << "---------------------------------------------------------------------------\n";
+            do
+            {
+                cout << "Do you want to proceed? (Y/N): ";
+                getline(cin, confirm);
+                confirm = toUpperCase(confirm);
+                if (confirm == "N")
+                {
+                    cout << "Reservation cancelled.\n\n";
+                    break;
+                }
+                else if (confirm == "Y")
+                {
+                    cout << "Proceeding with reservation...\n";
+                }
+                else if (confirm.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+                else
+                {
+                    cout << "Invalid input! Please enter Y or N only.\n";
+                }
+            } while (confirm != "Y" && confirm != "N");
+            if (confirm != "Y")
+                break;
+
             do
             {
                 cout << "Name: ";
@@ -1077,11 +1107,21 @@ void customerMenu(const string &username)
             rs.displayUserReservationByStatus(STATUS[0], username); // STATUS[0] = "Pending"
 
             string id, confirm;
-            cout << "Enter Reservation ID to edit: ";
-            getline(cin, id);
-            if (id.empty())
+            do
             {
-                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                cout << "Enter Reservation ID to edit (or type 'cancel' to go back): ";
+                getline(cin, id);
+
+                if (id.empty())
+                {
+                    cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                }
+
+            } while (id.empty());
+
+            if (toUpperCase(id) == "CANCEL")
+            {
+                cout << "Edit cancelled.\n";
                 break;
             }
 
@@ -1165,12 +1205,21 @@ void customerMenu(const string &username)
             }
 
             string id, confirm;
-            cout << "Enter Reservation ID to cancel: ";
-            getline(cin, id);
-
-            if (id.empty())
+            do
             {
-                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                cout << "Enter Reservation ID to cancel (or type 'cancel' to go back): ";
+                getline(cin, id);
+
+                if (id.empty())
+                {
+                    cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                }
+
+            } while (id.empty());
+
+            if (toUpperCase(id) == "CANCEL")
+            {
+                cout << "Cancel Reservation cancelled.\n";
                 break;
             }
 
@@ -1232,12 +1281,21 @@ void customerMenu(const string &username)
             rs.displayUserReservationByStatus(STATUS[1], username); // STATUS[1] = "Approved"
 
             string id, confirm;
-            cout << "Enter Reservation ID to settle payment: ";
-            getline(cin, id);
-
-            if (id.empty())
+            do
             {
-                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                cout << "Enter Reservation ID to settle payment (or type 'cancel' to go back): ";
+                getline(cin, id);
+
+                if (id.empty())
+                {
+                    cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                }
+
+            } while (id.empty());
+
+            if (toUpperCase(id) == "CANCEL")
+            {
+                cout << "Settle Payment cancelled.\n";
                 break;
             }
 
@@ -1371,8 +1429,14 @@ void adminMenu()
 
             string id, action, confirm;
             condition = true;
-            cout << "Enter Reservation ID to review: ";
+            cout << "Enter Reservation ID to review (or type 'cancel' to go back): ";
             getline(cin, id);
+
+            if (toUpperCase(id) == "CANCEL")
+            {
+                cout << "Review cancelled. Returning to previous menu...\n";
+                break;
+            }
 
             if (id.empty())
             {
@@ -1394,7 +1458,7 @@ void adminMenu()
 
             do
             {
-                cout << "Approve or reject reservation ID " << id << "? : "; // Enter "Approve" or "Reject"
+                cout << "Approve or Reject reservation ID " << id << "? : "; // Enter "Approve" or "Reject"
                 getline(cin, action);
                 action = toUpperCase(action);
 
