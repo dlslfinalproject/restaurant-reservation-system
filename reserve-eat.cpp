@@ -1070,21 +1070,45 @@ void customerMenu(const string &username)
 
             cout << "\nAvailable tables for " << date << " at " << startTime << " - " << addTwoHours24(startTime) << ": " << availableTables << " / 10\n";
 
-            if (availableTables <= 0)
-            {
-                cout << "Sorry, there are no tables available at this time. Please try a different time or date.\n";
-                break;
-            }
-
-            bool validNumber = false;
+            string cont;
             do
             {
-                tablesNeeded = getValidInt("Number of Tables to reserve: ", 1, min(10, availableTables));
-                validNumber = true;
-            } while (!validNumber);
+                cout << "Continue with reservation? (Y/N): ";
+                getline(cin, cont);
+                cont = toUpperCase(cont);
 
-            cout << "========================================================================\n";
-            rs.addReservation(username, name, phoneNo, tablesNeeded, date, startTime);
+                if (cont == "N")
+                {
+                    cout << "Back to menu..." << endl;
+                    break;
+                }
+                else if (cont == "Y")
+                {
+                    if (availableTables <= 0)
+                    {
+                        cout << "Sorry, there are no tables available at this time. Please try a different time or date.\n";
+                        break;
+                    }
+
+                    bool validNumber = false;
+                    do
+                    {
+                        tablesNeeded = getValidInt("Number of Tables to reserve: ", 1, min(10, availableTables));
+                        validNumber = true;
+                    } while (!validNumber);
+
+                    cout << "========================================================================\n";
+                    rs.addReservation(username, name, phoneNo, tablesNeeded, date, startTime);
+                }
+                else if (cont.empty())
+                {
+                    cout << "Confirmation cannot be empty! Please enter Y or N.\n";
+                }
+                else
+                {
+                    cout << "Invalid input! Please enter Y or N only.\n";
+                }
+            } while (cont != "Y" && cont != "N");
 
             break;
         }
