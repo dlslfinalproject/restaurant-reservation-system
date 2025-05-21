@@ -1070,6 +1070,12 @@ void customerMenu(const string &username)
 
             cout << "\nAvailable tables for " << date << " at " << startTime << " - " << addTwoHours24(startTime) << ": " << availableTables << " / 10\n";
 
+            if (availableTables <= 0)
+            {
+                cout << "Sorry, there are no tables available at this time. Please try a different time or date.\n";
+                break;
+            }
+            
             string cont;
             do
             {
@@ -1084,11 +1090,6 @@ void customerMenu(const string &username)
                 }
                 else if (cont == "Y")
                 {
-                    if (availableTables <= 0)
-                    {
-                        cout << "Sorry, there are no tables available at this time. Please try a different time or date.\n";
-                        break;
-                    }
 
                     bool validNumber = false;
                     do
