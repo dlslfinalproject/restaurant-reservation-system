@@ -1075,7 +1075,7 @@ void customerMenu(const string &username)
                 cout << "Sorry, there are no tables available at this time. Please try a different time or date.\n";
                 break;
             }
-            
+
             string cont;
             do
             {
@@ -1244,7 +1244,7 @@ void customerMenu(const string &username)
 
             if (toUpperCase(id) == "CANCEL")
             {
-                cout << "Cancel Reservation cancelled.\n";
+                cout << "Cancellation Revoked.\n";
                 break;
             }
 
