@@ -1453,18 +1453,22 @@ void adminMenu()
 
             string id, action, confirm;
             condition = true;
-            cout << "Enter Reservation ID to review (or type 'cancel' to go back): ";
-            getline(cin, id);
+
+            do
+            {
+                cout << "Enter Reservation ID to review (or type 'cancel' to go back): ";
+                getline(cin, id);
+
+                if (id.empty())
+                {
+                    cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
+                }
+
+            } while (id.empty());
 
             if (toUpperCase(id) == "CANCEL")
             {
                 cout << "Review cancelled. Returning to previous menu...\n";
-                break;
-            }
-
-            if (id.empty())
-            {
-                cout << "Reservation ID cannot be empty! Please enter a valid ID.\n";
                 break;
             }
 
