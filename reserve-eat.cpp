@@ -233,6 +233,7 @@ public:
     Reservation() : tablesReserved(0) {}
     Reservation(string id, string username, string name, string phoneNo, int tablesReserved, string date, string startTime, string endTime, string status) : id(id), username(username), name(name), phoneNo(phoneNo), tablesReserved(tablesReserved), date(date), startTime(startTime), endTime(endTime), status(status) {}
 
+    // 
     string getID() const { return id; }
     string getUsername() const { return username; }
     string getName() const { return name; }
@@ -244,6 +245,7 @@ public:
     string getEndTime() const { return endTime; }
     void setStatus(const string &newStatus) { status = newStatus; }
 
+    
     void editReservation(int tReserved, string dt, string stm, string etm)
     {
         tablesReserved = tReserved;
@@ -294,6 +296,7 @@ public:
     bool isUserReservationEmpty(const string &username) const;
 };
 
+// Saves user information
 void saveUsersToFile(const string &filename = "users.txt")
 {
     ofstream file(filename);
@@ -311,6 +314,7 @@ void saveUsersToFile(const string &filename = "users.txt")
     file.close();
 }
 
+// Outputs users' information
 void loadUsersFromFile(const string &filename = "users.txt")
 {
     ifstream file(filename);
@@ -335,6 +339,7 @@ void loadUsersFromFile(const string &filename = "users.txt")
     file.close();
 }
 
+// Saves reservations 
 void ReservationSystem::saveReservationsToFile(const string &filename) const
 {
     ofstream file(filename);
@@ -354,6 +359,7 @@ void ReservationSystem::saveReservationsToFile(const string &filename) const
     file.close();
 }
 
+// Outputs reservation details
 void ReservationSystem::loadReservationsFromFile(const string &filename)
 {
     ifstream file(filename);
@@ -433,6 +439,7 @@ void ReservationSystem::addReservation(const string &username, const string &nam
     cout << "Reservation made successfully! Reservation ID: " << id << endl;
 }
 
+// Available tables 
 int ReservationSystem::getAvailableTables(const string &date, const string &startTime, const string &endTime) const
 {
     int totalTables = 10;
@@ -1550,6 +1557,7 @@ void adminMenu()
     }
 }
 
+// Main program
 int main()
 {
     loadUsersFromFile();
